@@ -1,4 +1,4 @@
-import { Lock, Eye, Pencil } from 'lucide-react';
+import { Lock, Eye, Pencil, RotateCcw } from 'lucide-react';
 import { useState } from 'react';
 import { useStoryStore } from '@/stores/storyStore';
 import { Button } from '@/components/ui/button';
@@ -16,15 +16,19 @@ const DAY_THEMES = [
 ];
 
 const StepPreview = () => {
-  const { emails, isUnlocked, formData, setEmails } = useStoryStore();
+  const { emails, isUnlocked, formData, setEmails, reset } = useStoryStore();
   const [selectedEmailIndex, setSelectedEmailIndex] = useState<number | null>(null);
   const [scheduleTimes, setScheduleTimes] = useState<string[]>(
     Array(7).fill('09:00')
   );
 
   const handleUnlock = () => {
-    // TODO: Implement Stripe payment
-    console.log('Open Stripe checkout');
+    // TODO: Implement Razorpay payment
+    console.log('Open Razorpay checkout');
+  };
+
+  const handleRestart = () => {
+    reset();
   };
 
   const handleEmailClick = (index: number) => {
@@ -159,10 +163,22 @@ const StepPreview = () => {
             Unlock & schedule
           </Button>
           <p className="text-sm text-muted-foreground mt-3">
-            $9.99 one-time • All 7 emails • Full editing access
+            ₹499 one-time • All 7 emails • Full editing access
           </p>
         </div>
       )}
+
+      {/* Restart button */}
+      <div className="mt-6 text-center">
+        <Button 
+          variant="ghost" 
+          onClick={handleRestart}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <RotateCcw className="w-4 h-4 mr-2" />
+          Start over
+        </Button>
+      </div>
 
       {/* Email View/Edit Modal */}
       <EmailViewModal
