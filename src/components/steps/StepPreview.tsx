@@ -249,8 +249,11 @@ const StepPreview = () => {
               key={index}
               className="p-4 rounded-lg border border-border bg-card"
             >
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <div 
+                  className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => setSelectedEmailIndex(index)}
+                >
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-rose-subtle flex items-center justify-center">
                     <span className="text-sm font-medium text-primary">{index + 1}</span>
                   </div>
@@ -265,13 +268,22 @@ const StepPreview = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="time"
-                    value={scheduleTimes[index]}
-                    onChange={(e) => handleTimeChange(index, e.target.value)}
-                    className="w-24 h-8 text-sm"
-                  />
+                  <button
+                    onClick={() => setSelectedEmailIndex(index)}
+                    className="p-2 rounded-md hover:bg-muted transition-colors"
+                    title="Edit email"
+                  >
+                    <Pencil className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="time"
+                      value={scheduleTimes[index]}
+                      onChange={(e) => handleTimeChange(index, e.target.value)}
+                      className="w-24 h-8 text-sm"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
