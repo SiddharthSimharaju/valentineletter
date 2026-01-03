@@ -1,9 +1,47 @@
-import { Lock, Eye, Pencil, RotateCcw } from 'lucide-react';
+import { Lock, Eye, Pencil, RotateCcw, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useStoryStore } from '@/stores/storyStore';
 import { Button } from '@/components/ui/button';
 import EmailViewModal from '@/components/EmailViewModal';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import type { GeneratedEmail } from '@/types/story';
+
+declare global {
+  interface Window {
+    Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
+  }
+}
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  handler: (response: RazorpayResponse) => void;
+  prefill?: {
+    name?: string;
+    email?: string;
+  };
+  theme?: {
+    color?: string;
+  };
+  modal?: {
+    ondismiss?: () => void;
+  };
+}
+
+interface RazorpayInstance {
+  open: () => void;
+}
+
+interface RazorpayResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
 
 const DAY_THEMES = [
   'Recognition',
@@ -16,15 +54,82 @@ const DAY_THEMES = [
 ];
 
 const StepPreview = () => {
-  const { emails, isUnlocked, formData, setEmails, reset } = useStoryStore();
+  const { emails, isUnlocked, formData, setEmails, setIsUnlocked, setIsPaid, reset } = useStoryStore();
   const [selectedEmailIndex, setSelectedEmailIndex] = useState<number | null>(null);
   const [scheduleTimes, setScheduleTimes] = useState<string[]>(
     Array(7).fill('09:00')
   );
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleUnlock = () => {
-    // TODO: Implement Razorpay payment
-    console.log('Open Razorpay checkout');
+  const handleUnlock = async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+
+    try {
+      // Create order
+      const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
+        body: { amount: 499, currency: 'INR' }
+      });
+
+      if (error || !data?.orderId) {
+        throw new Error(error?.message || 'Failed to create order');
+      }
+
+      const { orderId, keyId, amount, currency } = data;
+
+      // Open Razorpay checkout
+      const options: RazorpayOptions = {
+        key: keyId,
+        amount: amount,
+        currency: currency,
+        name: 'What I Want to Tell You',
+        description: '7-Day Valentine\'s Email Sequence',
+        order_id: orderId,
+        handler: async (response: RazorpayResponse) => {
+          try {
+            // Verify payment
+            const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-razorpay-payment', {
+              body: {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }
+            });
+
+            if (verifyError || !verifyData?.success) {
+              throw new Error('Payment verification failed');
+            }
+
+            // Unlock emails
+            setIsUnlocked(true);
+            setIsPaid(true);
+            toast.success('Payment successful! All emails unlocked.');
+          } catch (err) {
+            console.error('Payment verification error:', err);
+            toast.error('Payment verification failed. Please contact support.');
+          }
+        },
+        prefill: {
+          name: formData.recipientName || '',
+        },
+        theme: {
+          color: '#c9828a',
+        },
+        modal: {
+          ondismiss: () => {
+            setIsProcessing(false);
+          }
+        }
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (err) {
+      console.error('Payment error:', err);
+      toast.error('Failed to initiate payment. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleRestart = () => {
@@ -158,9 +263,19 @@ const StepPreview = () => {
             onClick={handleUnlock}
             size="lg"
             className="w-full h-12 text-base"
+            disabled={isProcessing}
           >
-            <Lock className="w-4 h-4 mr-2" />
-            Unlock & schedule
+            {isProcessing ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Lock className="w-4 h-4 mr-2" />
+                Unlock & schedule
+              </>
+            )}
           </Button>
           <p className="text-sm text-muted-foreground mt-3">
             ₹499 one-time • All 7 emails • Full editing access
