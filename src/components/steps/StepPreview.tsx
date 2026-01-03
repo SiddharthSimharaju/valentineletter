@@ -258,7 +258,7 @@ const StepPreview = () => {
 
       {/* Unlock CTA */}
       {!isUnlocked && (
-        <div className="text-center">
+        <div className="text-center space-y-3">
           <Button 
             onClick={handleUnlock}
             size="lg"
@@ -277,9 +277,24 @@ const StepPreview = () => {
               </>
             )}
           </Button>
-          <p className="text-sm text-muted-foreground mt-3">
+          <p className="text-sm text-muted-foreground">
             ₹499 one-time • All 7 emails • Full editing access
           </p>
+          
+          {/* Temporary test button */}
+          <div className="pt-4 border-t border-dashed border-border mt-4">
+            <Button 
+              variant="outline"
+              onClick={() => {
+                setIsUnlocked(true);
+                setIsPaid(true);
+                toast.success('Test: Payment simulated! Emails unlocked.');
+              }}
+              className="w-full text-muted-foreground border-dashed"
+            >
+              🧪 Payment Complete (Test Only)
+            </Button>
+          </div>
         </div>
       )}
 

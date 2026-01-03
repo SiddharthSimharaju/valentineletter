@@ -9,13 +9,14 @@ const StepOriginStory = () => {
   const { formData, updateFormData, nextStep } = useStoryStore();
   const [story, setStory] = useState(formData.originStory || '');
 
-  const handleContinue = () => {
-    updateFormData({ originStory: story });
-    nextStep();
-  };
+  const [error, setError] = useState('');
 
-  const handleSkip = () => {
-    updateFormData({ originStory: '' });
+  const handleContinue = () => {
+    if (!story.trim()) {
+      setError('Please share how you first met');
+      return;
+    }
+    updateFormData({ originStory: story });
     nextStep();
   };
 
@@ -30,27 +31,23 @@ const StepOriginStory = () => {
             id="originStory"
             placeholder="A few lines is enough."
             value={story}
-            onChange={(e) => setStory(e.target.value)}
+            onChange={(e) => {
+              setStory(e.target.value);
+              setError('');
+            }}
             className="min-h-[120px] text-base resize-none"
           />
+          {error && (
+            <p className="text-sm text-destructive">{error}</p>
+          )}
         </div>
 
-        <div className="flex flex-col gap-3">
-          <Button 
-            onClick={handleContinue}
-            className="w-full h-12 text-base"
-          >
-            Next
-          </Button>
-          
-          <Button 
-            variant="ghost"
-            onClick={handleSkip}
-            className="text-muted-foreground"
-          >
-            Skip this
-          </Button>
-        </div>
+        <Button 
+          onClick={handleContinue}
+          className="w-full h-12 text-base"
+        >
+          Next
+        </Button>
       </div>
     </StepLayout>
   );
