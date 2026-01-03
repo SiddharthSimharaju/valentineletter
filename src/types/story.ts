@@ -34,6 +34,7 @@ export interface GeneratedEmail {
   theme: string;
   subject: string;
   body: string;
+  imageUrl?: string | null;
 }
 
 export interface Story {
