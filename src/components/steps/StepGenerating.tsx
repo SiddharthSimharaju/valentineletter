@@ -6,16 +6,15 @@ import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
 
 const STAGES = [
-  { label: 'Preparing your story...', duration: 2000 },
-  { label: 'Writing Day 1...', duration: 1500 },
-  { label: 'Writing Day 2...', duration: 1500 },
-  { label: 'Writing Day 3...', duration: 1500 },
-  { label: 'Writing Day 4...', duration: 1500 },
-  { label: 'Writing Day 5...', duration: 1500 },
-  { label: 'Writing Day 6...', duration: 1500 },
-  { label: 'Writing Day 7...', duration: 1500 },
-  { label: 'Creating illustrations...', duration: 8000 },
-  { label: 'Finishing touches...', duration: 3000 },
+  { label: 'Preparing your story...', duration: 1500 },
+  { label: 'Drafting Day 1...', duration: 1500 },
+  { label: 'Drafting Day 2...', duration: 1500 },
+  { label: 'Drafting Day 3...', duration: 1500 },
+  { label: 'Drafting Day 4...', duration: 1500 },
+  { label: 'Drafting Day 5...', duration: 1500 },
+  { label: 'Drafting Day 6...', duration: 1500 },
+  { label: 'Drafting Day 7...', duration: 1500 },
+  { label: 'Finishing touches...', duration: 2500 },
 ];
 
 const StepGenerating = () => {
@@ -27,7 +26,7 @@ const StepGenerating = () => {
   // Animated progress that simulates the generation process
   useEffect(() => {
     let currentProgress = 0;
-    const targetProgress = 95; // Max before completion
+    const targetProgress = 99; // Max before completion
     const totalDuration = STAGES.reduce((sum, s) => sum + s.duration, 0);
     
     const interval = setInterval(() => {
