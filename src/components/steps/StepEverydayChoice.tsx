@@ -5,34 +5,35 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 
-const StepMeaningfulMoment = () => {
+const StepEverydayChoice = () => {
   const { formData, updateFormData, nextStep } = useStoryStore();
-  const [moment, setMoment] = useState(formData.meaningfulMoment || '');
+  const recipientName = formData.recipientName || 'them';
+  const [choice, setChoice] = useState(formData.everydayChoice || '');
   const [error, setError] = useState('');
 
   const handleContinue = () => {
-    if (!moment.trim()) {
-      setError('Please share a moment');
+    if (!choice.trim()) {
+      setError('Please share what makes you choose them');
       return;
     }
-    updateFormData({ meaningfulMoment: moment });
+    updateFormData({ everydayChoice: choice });
     nextStep();
   };
 
   return (
     <StepLayout 
-      title="What's one small moment with them that still stays with you?"
-      helperText="Small moments often say the most."
+      title={`What makes you choose ${recipientName} on ordinary days?`}
+      helperText="Not the big romantic moments. The regular Tuesday kind of love."
     >
       <div className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="meaningfulMoment" className="sr-only">Meaningful moment</Label>
+          <Label htmlFor="everydayChoice" className="sr-only">Everyday choice</Label>
           <Textarea
-            id="meaningfulMoment"
-            placeholder="Type here…"
-            value={moment}
+            id="everydayChoice"
+            placeholder="On regular days, I choose them because..."
+            value={choice}
             onChange={(e) => {
-              setMoment(e.target.value);
+              setChoice(e.target.value);
               setError('');
             }}
             className="min-h-[120px] text-base resize-none"
@@ -53,4 +54,4 @@ const StepMeaningfulMoment = () => {
   );
 };
 
-export default StepMeaningfulMoment;
+export default StepEverydayChoice;

@@ -1,12 +1,14 @@
 import { useStoryStore } from '@/stores/storyStore';
 import StepEmailSignup from '@/components/steps/StepEmailSignup';
 import StepRecipient from '@/components/steps/StepRecipient';
-import StepRelationship from '@/components/steps/StepRelationship';
-import StepExpressionComfort from '@/components/steps/StepExpressionComfort';
+import StepLatelyThinking from '@/components/steps/StepLatelyThinking';
 import StepOriginStory from '@/components/steps/StepOriginStory';
-import StepMeaningfulMoment from '@/components/steps/StepMeaningfulMoment';
+import StepEarlyImpression from '@/components/steps/StepEarlyImpression';
 import StepAdmiration from '@/components/steps/StepAdmiration';
-import StepEmotionalIntent from '@/components/steps/StepEmotionalIntent';
+import StepVulnerability from '@/components/steps/StepVulnerability';
+import StepGrowth from '@/components/steps/StepGrowth';
+import StepEverydayChoice from '@/components/steps/StepEverydayChoice';
+import StepValentineHope from '@/components/steps/StepValentineHope';
 import StepGuardrails from '@/components/steps/StepGuardrails';
 import StepTone from '@/components/steps/StepTone';
 import StepGenerating from '@/components/steps/StepGenerating';
@@ -14,21 +16,23 @@ import StepPreview from '@/components/steps/StepPreview';
 import ProgressBar from '@/components/ProgressBar';
 
 const STEPS = [
-  { component: StepEmailSignup, showProgress: true },
-  { component: StepRecipient, showProgress: true },
-  { component: StepRelationship, showProgress: true },
-  { component: StepExpressionComfort, showProgress: true },
-  { component: StepOriginStory, showProgress: true },
-  { component: StepMeaningfulMoment, showProgress: true },
-  { component: StepAdmiration, showProgress: true },
-  { component: StepEmotionalIntent, showProgress: true },
-  { component: StepGuardrails, showProgress: true },
-  { component: StepTone, showProgress: true },
-  { component: StepGenerating, showProgress: false },
-  { component: StepPreview, showProgress: false },
+  { component: StepEmailSignup, showProgress: true },      // 0 - User email
+  { component: StepRecipient, showProgress: true },        // 1 - Their name & email
+  { component: StepLatelyThinking, showProgress: true },   // 2 - Day 1: Acknowledgement
+  { component: StepOriginStory, showProgress: true },      // 3 - Day 2: Origin
+  { component: StepEarlyImpression, showProgress: true },  // 4 - Day 2: Early impression
+  { component: StepAdmiration, showProgress: true },       // 5 - Day 3: Appreciation
+  { component: StepVulnerability, showProgress: true },    // 6 - Day 4: Vulnerability
+  { component: StepGrowth, showProgress: true },           // 7 - Day 5: Growth
+  { component: StepEverydayChoice, showProgress: true },   // 8 - Day 6: Choice
+  { component: StepValentineHope, showProgress: true },    // 9 - Day 7: Valentine's Day
+  { component: StepGuardrails, showProgress: true },       // 10 - What to avoid
+  { component: StepTone, showProgress: true },             // 11 - Tone selection
+  { component: StepGenerating, showProgress: false },      // 12 - Generating
+  { component: StepPreview, showProgress: false },         // 13 - Preview
 ];
 
-const TOTAL_FORM_STEPS = 10; // Steps 0-9 are form steps
+const TOTAL_FORM_STEPS = 12; // Steps 0-11 are form steps
 
 const Create = () => {
   const currentStep = useStoryStore((state) => state.currentStep);
