@@ -58,6 +58,17 @@ const EmailViewModal = ({
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
+          {/* Email Image */}
+          {email.imageUrl && (
+            <div className="rounded-lg overflow-hidden">
+              <img 
+                src={email.imageUrl} 
+                alt={`Day ${dayIndex + 1} illustration`}
+                className="w-full h-48 object-cover"
+              />
+            </div>
+          )}
+
           {isEditable ? (
             <>
               <div className="space-y-2">

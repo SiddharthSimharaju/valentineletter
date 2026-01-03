@@ -35,17 +35,31 @@ serve(async (req) => {
     console.log("Tone:", formData.tone);
 
     // Build the system prompt
-    const systemPrompt = `You are a thoughtful writer helping someone express their feelings to their partner.
+    const systemPrompt = `You are a deeply thoughtful writer helping someone express their innermost feelings to their partner.
 
 Your task is to create a 7-day email sequence for Valentine's Week that feels like a gentle emotional journey.
 
+WRITING PHILOSOPHY:
+- Write emails as if they are private letters, not greeting cards
+- Each email should feel like an inner thought finally put into words
+- The tone should feel intimate, reflective, and emotionally honest
+- Write with depth. Write with patience. Write as if the reader is the only person in the world reading this.
+
 CRITICAL RULES:
 - Never mention AI or automation
-- Tone must be human, warm, grounded, and non-cringe
-- Avoid clichés and over-poetic language
-- Keep emails short, intimate, and readable on mobile
-- Each email should feel handwritten and personal
-- Respect all guardrails provided
+- AVOID generic phrases like "you mean a lot to me", "special feeling", "thinking of us"
+- Instead use specific emotional observations
+- Reference time, pauses, everyday moments
+- Allow silence and restraint
+- Let sentences breathe
+- Prefer short paragraphs
+- Avoid metaphors unless they feel grounded and specific
+
+STRUCTURE FOR EACH EMAIL:
+- Include one inner realization
+- Include one emotional contrast (e.g., quiet vs loud, then vs now)
+- Include one forward-looking line that gently leads to the next day
+- Aim for 180-250 words - substantial but not verbose
 
 TONE GUIDE based on selection "${formData.tone}":
 ${formData.tone === 'simple' ? '- Use clear, direct language. No flowery prose. Honest and straightforward.' : ''}
@@ -77,12 +91,12 @@ OUTPUT FORMAT - Return a JSON array with exactly 7 objects:
     "day": 1,
     "theme": "Recognition",
     "subject": "Subject line here",
-    "body": "Email body here. Use \\n for line breaks."
+    "body": "Email body here. Use \\n\\n for paragraph breaks."
   },
   ...
 ]
 
-Keep each email body under 150 words. Make them feel personal and specific to what was shared.`;
+Each email should be 180-250 words. Make them feel deeply personal and specific to what was shared.`;
 
     console.log("Calling AI gateway...");
 
@@ -148,10 +162,61 @@ Keep each email body under 150 words. Make them feel personal and specific to wh
       throw new Error("Invalid email structure");
     }
 
-    console.log("Successfully generated 7 emails");
+    console.log("Successfully generated 7 emails, now generating images...");
+
+    // Image prompts for each day - soft, intimate, cinematic illustrations
+    const imagePrompts = [
+      "A soft cinematic illustration of two coffee cups on a quiet morning table by a window with gentle light filtering through, warm muted tones, intimate atmosphere, no text",
+      "A dreamy watercolor-style illustration of an empty park bench at golden hour with soft shadows, two pairs of footprints in light snow nearby, nostalgic and tender mood, no text",
+      "A gentle illustration of hands almost touching over an old photo album, soft focus, warm amber lighting, intimate and reflective atmosphere, no text",
+      "A muted cinematic scene of rain on a window with two silhouettes visible in warm interior light, soft blues and ambers, vulnerable quiet moment, no text",
+      "A soft illustration of two plants growing intertwined in a sunlit windowsill, gentle morning light, symbol of growth together, warm earth tones, no text",
+      "A tender illustration of two chairs facing each other by a fireplace with soft flickering light, cozy intimate setting, warm muted palette, no text",
+      "A romantic soft-focus illustration of sunrise through sheer curtains with flower petals on a bedside table, ethereal warm light, Valentine's morning feeling, no text"
+    ];
+
+    // Generate images in parallel
+    const imagePromises = imagePrompts.map(async (prompt, index) => {
+      try {
+        console.log(`Generating image for day ${index + 1}...`);
+        const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-image-preview",
+            messages: [{ role: "user", content: prompt }],
+            modalities: ["image", "text"]
+          }),
+        });
+
+        if (!imageResponse.ok) {
+          console.error(`Image generation failed for day ${index + 1}`);
+          return null;
+        }
+
+        const imageData = await imageResponse.json();
+        const imageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+        return imageUrl || null;
+      } catch (error) {
+        console.error(`Error generating image for day ${index + 1}:`, error);
+        return null;
+      }
+    });
+
+    const images = await Promise.all(imagePromises);
+    console.log(`Generated ${images.filter(Boolean).length} images successfully`);
+
+    // Attach images to emails
+    const emailsWithImages = emails.map((email: any, index: number) => ({
+      ...email,
+      imageUrl: images[index] || null
+    }));
 
     return new Response(
-      JSON.stringify({ emails }),
+      JSON.stringify({ emails: emailsWithImages }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
