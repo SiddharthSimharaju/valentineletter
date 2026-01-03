@@ -9,7 +9,13 @@ const StepGuardrails = () => {
   const { formData, updateFormData, nextStep } = useStoryStore();
   const [guardrails, setGuardrails] = useState(formData.guardrails || '');
 
+  const [error, setError] = useState('');
+
   const handleContinue = () => {
+    if (!guardrails.trim()) {
+      setError('Please share what to avoid, or write "nothing" if there\'s nothing specific');
+      return;
+    }
     updateFormData({ guardrails: guardrails });
     nextStep();
   };
@@ -24,11 +30,17 @@ const StepGuardrails = () => {
           <Label htmlFor="guardrails" className="sr-only">Guardrails</Label>
           <Textarea
             id="guardrails"
-            placeholder="For example: past conflicts, distance, future plans"
+            placeholder="For example: past conflicts, distance, future plans. Or write 'nothing' if there's nothing specific."
             value={guardrails}
-            onChange={(e) => setGuardrails(e.target.value)}
+            onChange={(e) => {
+              setGuardrails(e.target.value);
+              setError('');
+            }}
             className="min-h-[100px] text-base resize-none"
           />
+          {error && (
+            <p className="text-sm text-destructive">{error}</p>
+          )}
         </div>
 
         <Button 

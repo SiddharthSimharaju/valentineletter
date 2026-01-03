@@ -9,13 +9,14 @@ const StepGrowth = () => {
   const { formData, updateFormData, nextStep } = useStoryStore();
   const [growth, setGrowth] = useState(formData.growthChange || '');
 
-  const handleContinue = () => {
-    updateFormData({ growthChange: growth });
-    nextStep();
-  };
+  const [error, setError] = useState('');
 
-  const handleSkip = () => {
-    updateFormData({ growthChange: '' });
+  const handleContinue = () => {
+    if (!growth.trim()) {
+      setError('Please share how your relationship has grown');
+      return;
+    }
+    updateFormData({ growthChange: growth });
     nextStep();
   };
 
@@ -31,27 +32,23 @@ const StepGrowth = () => {
             id="growthChange"
             placeholder="We used to... but now we..."
             value={growth}
-            onChange={(e) => setGrowth(e.target.value)}
+            onChange={(e) => {
+              setGrowth(e.target.value);
+              setError('');
+            }}
             className="min-h-[120px] text-base resize-none"
           />
+          {error && (
+            <p className="text-sm text-destructive">{error}</p>
+          )}
         </div>
 
-        <div className="flex flex-col gap-3">
-          <Button 
-            onClick={handleContinue}
-            className="w-full h-12 text-base"
-          >
-            Next
-          </Button>
-          
-          <Button 
-            variant="ghost"
-            onClick={handleSkip}
-            className="text-muted-foreground"
-          >
-            Skip this
-          </Button>
-        </div>
+        <Button 
+          onClick={handleContinue}
+          className="w-full h-12 text-base"
+        >
+          Next
+        </Button>
       </div>
     </StepLayout>
   );

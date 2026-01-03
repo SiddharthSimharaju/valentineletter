@@ -9,13 +9,14 @@ const StepEarlyImpression = () => {
   const { formData, updateFormData, nextStep } = useStoryStore();
   const [impression, setImpression] = useState(formData.earlyImpression || '');
 
-  const handleContinue = () => {
-    updateFormData({ earlyImpression: impression });
-    nextStep();
-  };
+  const [error, setError] = useState('');
 
-  const handleSkip = () => {
-    updateFormData({ earlyImpression: '' });
+  const handleContinue = () => {
+    if (!impression.trim()) {
+      setError('Please share what you noticed about them');
+      return;
+    }
+    updateFormData({ earlyImpression: impression });
     nextStep();
   };
 
@@ -31,27 +32,23 @@ const StepEarlyImpression = () => {
             id="earlyImpression"
             placeholder="I remember noticing..."
             value={impression}
-            onChange={(e) => setImpression(e.target.value)}
+            onChange={(e) => {
+              setImpression(e.target.value);
+              setError('');
+            }}
             className="min-h-[120px] text-base resize-none"
           />
+          {error && (
+            <p className="text-sm text-destructive">{error}</p>
+          )}
         </div>
 
-        <div className="flex flex-col gap-3">
-          <Button 
-            onClick={handleContinue}
-            className="w-full h-12 text-base"
-          >
-            Next
-          </Button>
-          
-          <Button 
-            variant="ghost"
-            onClick={handleSkip}
-            className="text-muted-foreground"
-          >
-            Skip this
-          </Button>
-        </div>
+        <Button 
+          onClick={handleContinue}
+          className="w-full h-12 text-base"
+        >
+          Next
+        </Button>
       </div>
     </StepLayout>
   );
