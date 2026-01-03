@@ -314,6 +314,18 @@ const StepPreview = () => {
             ← Back to preview
           </Button>
         </div>
+
+        {/* Email View/Edit Modal */}
+        <EmailViewModal
+          isOpen={selectedEmailIndex !== null}
+          onClose={() => setSelectedEmailIndex(null)}
+          email={selectedEmailIndex !== null ? emails[selectedEmailIndex] : null}
+          dayIndex={selectedEmailIndex ?? 0}
+          dayTheme={DAY_THEMES[selectedEmailIndex ?? 0]}
+          isEditable={true}
+          scheduledTime={scheduleTimes[selectedEmailIndex ?? 0]}
+          onSave={handleSaveEmail}
+        />
       </div>
     );
   }
