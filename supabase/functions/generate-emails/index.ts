@@ -27,13 +27,13 @@ const corsHeaders = {
 };
 
 const DAY_STRUCTURE = [
-  { day: 1, theme: "Recognition", focus: "acknowledging the relationship and setting the tone for the week" },
-  { day: 2, theme: "How it started", focus: "reflecting on how they met and the early days" },
-  { day: 3, theme: "Admiration", focus: "expressing what they admire about the recipient" },
-  { day: 4, theme: "Vulnerability", focus: "sharing how the relationship has affected them emotionally" },
-  { day: 5, theme: "Growth", focus: "acknowledging how they've grown together" },
-  { day: 6, theme: "Choosing you", focus: "affirming commitment and choice" },
-  { day: 7, theme: "Valentine's Day", focus: "culminating message of love and presence" },
+  { day: 1, theme: "Acknowledgement", focus: "Present-tense recognition. Use what's been on their mind lately. Quiet acknowledgement, inner observation, setting the intention for the week." },
+  { day: 2, theme: "Origin", focus: "Grounding in memory. Use how they first met and what was noticed early on. Then vs now, how something ordinary became meaningful." },
+  { day: 3, theme: "Appreciation", focus: "Being seen. Use what the sender admires but doesn't say often. One specific trait or habit, why it matters, why it's rarely spoken." },
+  { day: 4, theme: "Vulnerability", focus: "Emotional honesty. Use how being with them has changed the sender. Inner emotional change, trust without pressure, no expectations on recipient." },
+  { day: 5, theme: "Growth", focus: "Shared evolution. Use how the relationship has changed over time. Growth, learning, steadiness. Avoid future promises or grand claims." },
+  { day: 6, theme: "Choice", focus: "Intentionality. Use what makes the sender choose them on ordinary days. Everyday choice, presence over possession." },
+  { day: 7, theme: "Valentine's Day", focus: "Emotional landing. Use what the sender hopes the recipient feels today. Simplicity, presence, no escalation or pressure." },
 ];
 
 function safeString(v: unknown, fallback = ""): string {
@@ -121,78 +121,84 @@ function validateEmails(emails: unknown): GeneratedEmail[] {
 
 async function generateEmailsWithAi(formData: FormData, apiKey: string): Promise<GeneratedEmail[]> {
   // Build the system prompt
-  const systemPrompt = `You are helping someone write personal emails to their partner for Valentine's Week.
+  const systemPrompt = `You are writing a 7-day Valentine's Week email sequence that feels deeply personal and worth paying for.
 
-Your job is to write 7 emails that sound like a real person wrote them, not a machine.
+These are private letters, not greeting cards. Write as if the sender struggles to express feelings but cares deeply.
 
-HOW TO WRITE:
-- Write like you're texting a close friend, but a bit more thoughtful
-- Keep it casual and conversational
-- Use incomplete sentences sometimes. Like this.
-- Sound like someone actually talks
-- Be specific, not generic
-- Write like you're sitting across from them at a coffee shop
+NEVER mention AI, automation, or templates.
 
-THINGS TO AVOID (these scream AI):
-- Never use em dashes (—)
-- No flowery language or poetic phrasing
-- Avoid: "I find myself", "in this moment", "journey", "truly", "deeply"
-- Avoid: "you mean so much", "special bond", "grateful for"
-- No perfect grammar or overly polished sentences
-- Don't start every sentence the same way
-- No clichés about love or relationships
-- Don't sound like a Hallmark card
-
-INSTEAD DO THIS:
-- Use simple words
-- Be a bit messy, real people ramble sometimes
-- Reference actual small moments, not big declarations
-- Let some thoughts trail off
+WRITING STYLE:
+- Sound human, not polished. Real people ramble, pause, trail off
 - Use contractions (don't, can't, I'm, you're)
-- Throw in filler words occasionally (anyway, so yeah, I dunno)
-- Keep paragraphs short, 2-3 sentences max
+- Short paragraphs, 2-3 sentences max
+- Incomplete sentences sometimes. Like this.
+- Simple words, no flowery language
+- Reference small specific moments, not big declarations
 
-STRUCTURE:
-- 150-200 words each
-- Start with a casual greeting like "Hey" or just their name
-- End simply, no dramatic sign-offs
+THINGS TO NEVER DO:
+- Never use em dashes or double hyphens
+- Never use: "I find myself", "in this moment", "journey", "truly", "deeply", "grateful for", "special bond"
+- No Hallmark card phrases or clichés
+- No perfect grammar
+- Don't start sentences the same way
+- No dramatic sign-offs
+
+EACH EMAIL MUST INCLUDE:
+- One inner realization
+- One emotional contrast (quiet vs loud, then vs now, said vs unsaid)
+- One line that gently leads into the next day
+
+CRITICAL TEST: If an email could be sent to anyone without changing a sentence, it fails. Rewrite it with specifics.
 
 TONE: ${safeString(formData.tone, "warm")}
-${formData.tone === "simple" ? "Keep it super straightforward. Say what you mean." : ""}
+${formData.tone === "simple" ? "Super straightforward. Say what you mean, nothing extra." : ""}
 ${formData.tone === "warm" ? "Affectionate but not cheesy. Like how you'd actually talk to someone you love." : ""}
-${formData.tone === "playful" ? "Light, fun, maybe a little teasing. Inside jokes if possible." : ""}
-${formData.tone === "deep" ? "More reflective, but still sounds like a person thinking out loud, not writing poetry." : ""}
+${formData.tone === "playful" ? "Light, fun, maybe teasing. Keep it genuine though." : ""}
+${formData.tone === "deep" ? "Reflective, but sounds like thinking out loud, not writing poetry." : ""}
 
 RELATIONSHIP: ${safeString(formData.relationshipType)}
-${formData.expressionComfort === "struggle" ? "The person writing this isn't great with words, so keep it simple and direct." : ""}
+${formData.expressionComfort === "struggle" ? "The sender struggles with words. Keep it simple and direct, like someone trying their best." : formData.expressionComfort === "try" ? "The sender tries but finds it hard. Accessible language." : ""}
 
 MAKE THEM FEEL: ${formData.emotionalIntent?.join(", ") || "loved"}
 
-${formData.guardrails ? `DON'T MENTION: ${formData.guardrails}` : ""}`;
+${formData.guardrails ? `NEVER MENTION: ${formData.guardrails}` : ""}`;
 
   // Build the user prompt with all context
   const userPrompt = `Create 7 emails for ${safeString(formData.recipientName, "my partner")}.
 
-PERSONAL DETAILS TO WEAVE IN:
-- How they met: ${safeString(formData.originStory, "Not provided - keep this vague")}
-- A meaningful moment: ${safeString(formData.meaningfulMoment, "Not provided - keep this vague")}
-- What the sender admires: ${safeString(formData.admiration, "Not provided - keep this vague")}
+PERSONAL CONTEXT TO USE:
+- Origin story (use for Day 2): ${safeString(formData.originStory, "Not provided, be vague about how they met")}
+- What they admire (use for Day 3): ${safeString(formData.admiration, "Not provided, focus on general appreciation")}
+- What's been on their mind (use for Day 1 & 4): ${safeString(formData.meaningfulMoment, "Not provided, keep it observational")}
 
-STRUCTURE:
-${DAY_STRUCTURE.map((d) => `Day ${d.day} - ${d.theme}: ${d.focus}`).join("\n")}
+THE 7-DAY EMOTIONAL ARC:
+
+Day 1 - Acknowledgement: Present-tense recognition. What's been on the sender's mind lately about the recipient. Quiet acknowledgement, inner observation, setting the intention for the week. DO NOT repeat ideas from other days.
+
+Day 2 - Origin: Grounding in memory. Use the origin story. Focus on then vs now, how something ordinary became meaningful. DO NOT repeat ideas from other days.
+
+Day 3 - Appreciation: Being seen. Use what they admire but rarely say. One specific trait or habit, why it matters. DO NOT repeat ideas from other days.
+
+Day 4 - Vulnerability: Emotional honesty. How being with them has changed the sender inside. Trust without pressure, no expectations placed on recipient. DO NOT repeat ideas from other days.
+
+Day 5 - Growth: Shared evolution. How they've grown together over time. Steadiness, learning. Avoid future promises. DO NOT repeat ideas from other days.
+
+Day 6 - Choice: Intentionality. What makes the sender choose them on ordinary days, not special ones. Everyday choice, presence over possession. DO NOT repeat ideas from other days.
+
+Day 7 - Valentine's Day: Emotional landing. What the sender hopes the recipient feels today. Simplicity, presence, no escalation or pressure. Let it land softly.
 
 OUTPUT FORMAT - Return a JSON array with exactly 7 objects:
 [
   {
     "day": 1,
-    "theme": "Recognition",
-    "subject": "Subject line here",
+    "theme": "Acknowledgement",
+    "subject": "Short, casual subject line",
     "body": "Email body here. Use \\n\\n for paragraph breaks."
   },
   ...
 ]
 
-Each email should be 180-250 words. Make them feel deeply personal and specific to what was shared.`;
+IMPORTANT: Each email is 180-250 words. Each must feel like it could ONLY be written for this person.`;
 
   console.log("Calling AI gateway (emails only)...");
 
