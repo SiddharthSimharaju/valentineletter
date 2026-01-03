@@ -121,44 +121,54 @@ function validateEmails(emails: unknown): GeneratedEmail[] {
 
 async function generateEmailsWithAi(formData: FormData, apiKey: string): Promise<GeneratedEmail[]> {
   // Build the system prompt
-  const systemPrompt = `You are a deeply thoughtful writer helping someone express their innermost feelings to their partner.
+  const systemPrompt = `You are helping someone write personal emails to their partner for Valentine's Week.
 
-Your task is to create a 7-day email sequence for Valentine's Week that feels like a gentle emotional journey.
+Your job is to write 7 emails that sound like a real person wrote them, not a machine.
 
-WRITING PHILOSOPHY:
-- Write emails as if they are private letters, not greeting cards
-- Each email should feel like an inner thought finally put into words
-- The tone should feel intimate, reflective, and emotionally honest
-- Write with depth. Write with patience. Write as if the reader is the only person in the world reading this.
+HOW TO WRITE:
+- Write like you're texting a close friend, but a bit more thoughtful
+- Keep it casual and conversational
+- Use incomplete sentences sometimes. Like this.
+- Sound like someone actually talks
+- Be specific, not generic
+- Write like you're sitting across from them at a coffee shop
 
-CRITICAL RULES:
-- Never mention AI or automation
-- AVOID generic phrases like "you mean a lot to me", "special feeling", "thinking of us"
-- Instead use specific emotional observations
-- Reference time, pauses, everyday moments
-- Allow silence and restraint
-- Let sentences breathe
-- Prefer short paragraphs
-- Avoid metaphors unless they feel grounded and specific
+THINGS TO AVOID (these scream AI):
+- Never use em dashes (—)
+- No flowery language or poetic phrasing
+- Avoid: "I find myself", "in this moment", "journey", "truly", "deeply"
+- Avoid: "you mean so much", "special bond", "grateful for"
+- No perfect grammar or overly polished sentences
+- Don't start every sentence the same way
+- No clichés about love or relationships
+- Don't sound like a Hallmark card
 
-STRUCTURE FOR EACH EMAIL:
-- Include one inner realization
-- Include one emotional contrast (e.g., quiet vs loud, then vs now)
-- Include one forward-looking line that gently leads to the next day
-- Aim for 180-250 words - substantial but not verbose
+INSTEAD DO THIS:
+- Use simple words
+- Be a bit messy, real people ramble sometimes
+- Reference actual small moments, not big declarations
+- Let some thoughts trail off
+- Use contractions (don't, can't, I'm, you're)
+- Throw in filler words occasionally (anyway, so yeah, I dunno)
+- Keep paragraphs short, 2-3 sentences max
 
-TONE GUIDE based on selection "${safeString(formData.tone)}":
-${formData.tone === "simple" ? "- Use clear, direct language. No flowery prose. Honest and straightforward." : ""}
-${formData.tone === "warm" ? "- Affectionate and tender. Romantic but not over-the-top. Genuine warmth." : ""}
-${formData.tone === "playful" ? "- Light-hearted and fun. Include subtle humor. Keep it cheerful." : ""}
-${formData.tone === "deep" ? "- Emotionally rich and introspective. Meaningful and profound, but not melodramatic." : ""}
+STRUCTURE:
+- 150-200 words each
+- Start with a casual greeting like "Hey" or just their name
+- End simply, no dramatic sign-offs
 
-RELATIONSHIP CONTEXT: ${safeString(formData.relationshipType)}
-EXPRESSION COMFORT: ${formData.expressionComfort === "struggle" ? "The sender struggles to express themselves, so help them say what they feel." : formData.expressionComfort === "try" ? "The sender tries but finds it hard, so keep language accessible." : "The sender is comfortable with words."}
+TONE: ${safeString(formData.tone, "warm")}
+${formData.tone === "simple" ? "Keep it super straightforward. Say what you mean." : ""}
+${formData.tone === "warm" ? "Affectionate but not cheesy. Like how you'd actually talk to someone you love." : ""}
+${formData.tone === "playful" ? "Light, fun, maybe a little teasing. Inside jokes if possible." : ""}
+${formData.tone === "deep" ? "More reflective, but still sounds like a person thinking out loud, not writing poetry." : ""}
 
-EMOTIONAL INTENT: Make the recipient feel ${formData.emotionalIntent?.join(" and ") || "loved"}.
+RELATIONSHIP: ${safeString(formData.relationshipType)}
+${formData.expressionComfort === "struggle" ? "The person writing this isn't great with words, so keep it simple and direct." : ""}
 
-${formData.guardrails ? `GUARDRAILS - DO NOT MENTION: ${formData.guardrails}` : ""}`;
+MAKE THEM FEEL: ${formData.emotionalIntent?.join(", ") || "loved"}
+
+${formData.guardrails ? `DON'T MENTION: ${formData.guardrails}` : ""}`;
 
   // Build the user prompt with all context
   const userPrompt = `Create 7 emails for ${safeString(formData.recipientName, "my partner")}.
