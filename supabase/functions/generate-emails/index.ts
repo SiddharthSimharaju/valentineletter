@@ -1,5 +1,26 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+type FormData = {
+  userEmail?: string;
+  recipientName?: string;
+  recipientEmail?: string;
+  relationshipType?: string;
+  expressionComfort?: "struggle" | "try" | "good" | string;
+  originStory?: string;
+  meaningfulMoment?: string;
+  admiration?: string;
+  emotionalIntent?: string[];
+  guardrails?: string;
+  tone?: "simple" | "warm" | "playful" | "deep" | string;
+};
+
+type GeneratedEmail = {
+  day: number;
+  theme: string;
+  subject: string;
+  body: string;
+};
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -15,27 +36,92 @@ const DAY_STRUCTURE = [
   { day: 7, theme: "Valentine's Day", focus: "culminating message of love and presence" },
 ];
 
-serve(async (req) => {
-  // Handle CORS preflight
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+function safeString(v: unknown, fallback = ""): string {
+  return typeof v === "string" ? v : fallback;
+}
+
+function buildFallbackEmails(formData: FormData): GeneratedEmail[] {
+  const recipientName = safeString(formData.recipientName, "there");
+  const originStory = safeString(formData.originStory);
+  const meaningfulMoment = safeString(formData.meaningfulMoment);
+  const admiration = safeString(formData.admiration);
+  const tone = safeString(formData.tone, "warm");
+
+  const openerByTone: Record<string, string> = {
+    simple: `Hi ${recipientName},`,
+    warm: `Hi ${recipientName},`,
+    playful: `Hey ${recipientName},`,
+    deep: `Hi ${recipientName},`,
+  };
+
+  const voiceByTone: Record<string, { vibe: string; signoff: string }> = {
+    simple: { vibe: "clear and honest", signoff: "—" },
+    warm: { vibe: "tender and affectionate", signoff: "—" },
+    playful: { vibe: "light and a little cheeky", signoff: "—" },
+    deep: { vibe: "quiet, reflective, and emotionally honest", signoff: "—" },
+  };
+
+  const voice = voiceByTone[tone] ?? voiceByTone.warm;
+  const opener = openerByTone[tone] ?? openerByTone.warm;
+
+  return DAY_STRUCTURE.map((d) => {
+    const subject = `${d.theme}: a note for today`;
+
+    const p1 = `${opener}`;
+    const p2 = `Today I just wanted to slow down and say something ${voice.vibe}. I don't want this week to be loud. I want it to be steady—like a hand on your back when you're tired, like the kind of care that doesn't need an audience.`;
+
+    const p3 =
+      d.day === 2 && originStory
+        ? `I keep replaying how it started for us—${originStory}. Not because I'm stuck in the past, but because it reminds me that the best things in my life have happened in ordinary moments that I almost didn't notice.`
+        : d.day === 3 && admiration
+          ? `One thing I've been carrying with me lately is how much I admire you—${admiration}. It's not the obvious stuff. It's the quiet way you show up, the way you keep going, the way you make space for people without making it a performance.`
+          : d.day === 4 && meaningfulMoment
+            ? `There's a moment I think about a lot—${meaningfulMoment}. It reminds me that being close to you changes me. It makes me braver in small ways. It makes me softer in the places I used to keep guarded.`
+            : `I’ve been noticing the small details lately—how our days feel when we're in sync, and how even the messy parts carry something real inside them.`;
+
+    const p4 = `Tomorrow I want to keep going—one step deeper, one note more honest. For now, just let this land: I see you, and I’m grateful you're here.`;
+
+    const body = [p1, "", p2, "", p3, "", p4, "", voice.signoff].join("\n\n");
+
+    return {
+      day: d.day,
+      theme: d.theme,
+      subject,
+      body,
+    };
+  });
+}
+
+function extractJsonArrayFromText(text: string): string {
+  const match = text.match(/\[[\s\S]*\]/);
+  if (!match) throw new Error("No JSON array found in response");
+  return match[0];
+}
+
+function validateEmails(emails: unknown): GeneratedEmail[] {
+  if (!Array.isArray(emails) || emails.length !== 7) {
+    throw new Error("Invalid email structure");
   }
 
-  try {
-    const { formData } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-
-    if (!LOVABLE_API_KEY) {
-      console.error("LOVABLE_API_KEY is not configured");
-      throw new Error("AI service not configured");
+  for (const email of emails) {
+    if (
+      !email ||
+      typeof email !== "object" ||
+      typeof (email as any).day !== "number" ||
+      typeof (email as any).theme !== "string" ||
+      typeof (email as any).subject !== "string" ||
+      typeof (email as any).body !== "string"
+    ) {
+      throw new Error("Invalid email structure");
     }
+  }
 
-    console.log("Generating emails for:", formData.recipientName);
-    console.log("Relationship type:", formData.relationshipType);
-    console.log("Tone:", formData.tone);
+  return emails as GeneratedEmail[];
+}
 
-    // Build the system prompt
-    const systemPrompt = `You are a deeply thoughtful writer helping someone express their innermost feelings to their partner.
+async function generateEmailsWithAi(formData: FormData, apiKey: string): Promise<GeneratedEmail[]> {
+  // Build the system prompt
+  const systemPrompt = `You are a deeply thoughtful writer helping someone express their innermost feelings to their partner.
 
 Your task is to create a 7-day email sequence for Valentine's Week that feels like a gentle emotional journey.
 
@@ -61,29 +147,29 @@ STRUCTURE FOR EACH EMAIL:
 - Include one forward-looking line that gently leads to the next day
 - Aim for 180-250 words - substantial but not verbose
 
-TONE GUIDE based on selection "${formData.tone}":
-${formData.tone === 'simple' ? '- Use clear, direct language. No flowery prose. Honest and straightforward.' : ''}
-${formData.tone === 'warm' ? '- Affectionate and tender. Romantic but not over-the-top. Genuine warmth.' : ''}
-${formData.tone === 'playful' ? '- Light-hearted and fun. Include subtle humor. Keep it cheerful.' : ''}
-${formData.tone === 'deep' ? '- Emotionally rich and introspective. Meaningful and profound, but not melodramatic.' : ''}
+TONE GUIDE based on selection "${safeString(formData.tone)}":
+${formData.tone === "simple" ? "- Use clear, direct language. No flowery prose. Honest and straightforward." : ""}
+${formData.tone === "warm" ? "- Affectionate and tender. Romantic but not over-the-top. Genuine warmth." : ""}
+${formData.tone === "playful" ? "- Light-hearted and fun. Include subtle humor. Keep it cheerful." : ""}
+${formData.tone === "deep" ? "- Emotionally rich and introspective. Meaningful and profound, but not melodramatic." : ""}
 
-RELATIONSHIP CONTEXT: ${formData.relationshipType}
-EXPRESSION COMFORT: ${formData.expressionComfort === 'struggle' ? 'The sender struggles to express themselves, so help them say what they feel.' : formData.expressionComfort === 'try' ? 'The sender tries but finds it hard, so keep language accessible.' : 'The sender is comfortable with words.'}
+RELATIONSHIP CONTEXT: ${safeString(formData.relationshipType)}
+EXPRESSION COMFORT: ${formData.expressionComfort === "struggle" ? "The sender struggles to express themselves, so help them say what they feel." : formData.expressionComfort === "try" ? "The sender tries but finds it hard, so keep language accessible." : "The sender is comfortable with words."}
 
-EMOTIONAL INTENT: Make the recipient feel ${formData.emotionalIntent?.join(' and ') || 'loved'}.
+EMOTIONAL INTENT: Make the recipient feel ${formData.emotionalIntent?.join(" and ") || "loved"}.
 
-${formData.guardrails ? `GUARDRAILS - DO NOT MENTION: ${formData.guardrails}` : ''}`;
+${formData.guardrails ? `GUARDRAILS - DO NOT MENTION: ${formData.guardrails}` : ""}`;
 
-    // Build the user prompt with all context
-    const userPrompt = `Create 7 emails for ${formData.recipientName}.
+  // Build the user prompt with all context
+  const userPrompt = `Create 7 emails for ${safeString(formData.recipientName, "my partner")}.
 
 PERSONAL DETAILS TO WEAVE IN:
-- How they met: ${formData.originStory || 'Not provided - keep this vague'}
-- A meaningful moment: ${formData.meaningfulMoment}
-- What the sender admires: ${formData.admiration}
+- How they met: ${safeString(formData.originStory, "Not provided - keep this vague")}
+- A meaningful moment: ${safeString(formData.meaningfulMoment, "Not provided - keep this vague")}
+- What the sender admires: ${safeString(formData.admiration, "Not provided - keep this vague")}
 
 STRUCTURE:
-${DAY_STRUCTURE.map(d => `Day ${d.day} - ${d.theme}: ${d.focus}`).join('\n')}
+${DAY_STRUCTURE.map((d) => `Day ${d.day} - ${d.theme}: ${d.focus}`).join("\n")}
 
 OUTPUT FORMAT - Return a JSON array with exactly 7 objects:
 [
@@ -98,133 +184,84 @@ OUTPUT FORMAT - Return a JSON array with exactly 7 objects:
 
 Each email should be 180-250 words. Make them feel deeply personal and specific to what was shared.`;
 
-    console.log("Calling AI gateway...");
+  console.log("Calling AI gateway (emails only)...");
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-      }),
-    });
+  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      // Use a cheaper model to reduce failures/time.
+      model: "google/gemini-2.5-flash-lite",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    }),
+  });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Service unavailable. Please try again later." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
-      throw new Error("AI generation failed");
-    }
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("AI gateway error:", response.status, errorText);
+    const err = new Error("AI generation failed") as Error & { status?: number };
+    err.status = response.status;
+    throw err;
+  }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
 
-    console.log("Raw AI response received, length:", content?.length);
+  console.log("Raw AI response received, length:", content?.length);
 
-    // Parse the JSON response
-    let emails;
-    try {
-      // Extract JSON from the response (handle markdown code blocks)
-      const jsonMatch = content.match(/\[[\s\S]*\]/);
-      if (jsonMatch) {
-        emails = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error("No JSON array found in response");
-      }
-    } catch (parseError) {
-      console.error("Failed to parse AI response:", parseError);
-      console.error("Content:", content);
-      throw new Error("Failed to parse email content");
-    }
+  const json = extractJsonArrayFromText(content ?? "");
+  const parsed = JSON.parse(json);
+  return validateEmails(parsed);
+}
 
-    // Validate the structure
-    if (!Array.isArray(emails) || emails.length !== 7) {
-      console.error("Invalid email structure:", emails);
-      throw new Error("Invalid email structure");
-    }
+serve(async (req) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
 
-    console.log("Successfully generated 7 emails, now generating images...");
+  try {
+    const { formData } = (await req.json()) as { formData: FormData };
 
-    // Image prompts for each day - soft, intimate, cinematic illustrations
-    const imagePrompts = [
-      "A soft cinematic illustration of two coffee cups on a quiet morning table by a window with gentle light filtering through, warm muted tones, intimate atmosphere, no text",
-      "A dreamy watercolor-style illustration of an empty park bench at golden hour with soft shadows, two pairs of footprints in light snow nearby, nostalgic and tender mood, no text",
-      "A gentle illustration of hands almost touching over an old photo album, soft focus, warm amber lighting, intimate and reflective atmosphere, no text",
-      "A muted cinematic scene of rain on a window with two silhouettes visible in warm interior light, soft blues and ambers, vulnerable quiet moment, no text",
-      "A soft illustration of two plants growing intertwined in a sunlit windowsill, gentle morning light, symbol of growth together, warm earth tones, no text",
-      "A tender illustration of two chairs facing each other by a fireplace with soft flickering light, cozy intimate setting, warm muted palette, no text",
-      "A romantic soft-focus illustration of sunrise through sheer curtains with flower petals on a bedside table, ethereal warm light, Valentine's morning feeling, no text"
-    ];
+    console.log("Generating emails for:", formData?.recipientName);
+    console.log("Relationship type:", formData?.relationshipType);
+    console.log("Tone:", formData?.tone);
 
-    // Generate images in parallel
-    const imagePromises = imagePrompts.map(async (prompt, index) => {
+    const apiKey = Deno.env.get("LOVABLE_API_KEY") ?? "";
+
+    let emails: GeneratedEmail[] | null = null;
+
+    if (apiKey) {
       try {
-        console.log(`Generating image for day ${index + 1}...`);
-        const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash-image-preview",
-            messages: [{ role: "user", content: prompt }],
-            modalities: ["image", "text"]
-          }),
-        });
-
-        if (!imageResponse.ok) {
-          console.error(`Image generation failed for day ${index + 1}`);
-          return null;
-        }
-
-        const imageData = await imageResponse.json();
-        const imageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-        return imageUrl || null;
-      } catch (error) {
-        console.error(`Error generating image for day ${index + 1}:`, error);
-        return null;
+        emails = await generateEmailsWithAi(formData, apiKey);
+      } catch (e) {
+        const status = (e as any)?.status;
+        console.error("AI email generation failed; falling back.", { status });
+        emails = null;
       }
+    } else {
+      console.warn("LOVABLE_API_KEY missing; using fallback generation.");
+    }
+
+    if (!emails) {
+      emails = buildFallbackEmails(formData);
+    }
+
+    return new Response(JSON.stringify({ emails }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-
-    const images = await Promise.all(imagePromises);
-    console.log(`Generated ${images.filter(Boolean).length} images successfully`);
-
-    // Attach images to emails
-    const emailsWithImages = emails.map((email: any, index: number) => ({
-      ...email,
-      imageUrl: images[index] || null
-    }));
-
-    return new Response(
-      JSON.stringify({ emails: emailsWithImages }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-
   } catch (error) {
     console.error("Error in generate-emails:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
+
