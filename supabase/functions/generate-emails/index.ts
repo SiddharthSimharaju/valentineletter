@@ -6,9 +6,16 @@ type FormData = {
   recipientEmail?: string;
   relationshipType?: string;
   expressionComfort?: "struggle" | "try" | "good" | string;
-  originStory?: string;
-  meaningfulMoment?: string;
-  admiration?: string;
+  // Day-mapped inputs
+  latelyThinking?: string;      // Day 1 - Acknowledgement
+  originStory?: string;          // Day 2 - Origin
+  earlyImpression?: string;      // Day 2 - What was noticed early on
+  admiration?: string;           // Day 3 - Appreciation
+  vulnerabilityFeeling?: string; // Day 4 - Vulnerability
+  growthChange?: string;         // Day 5 - Growth
+  everydayChoice?: string;       // Day 6 - Choice
+  valentineHope?: string;        // Day 7 - Valentine's Day
+  // Preferences
   emotionalIntent?: string[];
   guardrails?: string;
   tone?: "simple" | "warm" | "playful" | "deep" | string;
@@ -26,67 +33,63 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const DAY_STRUCTURE = [
-  { day: 1, theme: "Acknowledgement", focus: "Present-tense recognition. Use what's been on their mind lately. Quiet acknowledgement, inner observation, setting the intention for the week." },
-  { day: 2, theme: "Origin", focus: "Grounding in memory. Use how they first met and what was noticed early on. Then vs now, how something ordinary became meaningful." },
-  { day: 3, theme: "Appreciation", focus: "Being seen. Use what the sender admires but doesn't say often. One specific trait or habit, why it matters, why it's rarely spoken." },
-  { day: 4, theme: "Vulnerability", focus: "Emotional honesty. Use how being with them has changed the sender. Inner emotional change, trust without pressure, no expectations on recipient." },
-  { day: 5, theme: "Growth", focus: "Shared evolution. Use how the relationship has changed over time. Growth, learning, steadiness. Avoid future promises or grand claims." },
-  { day: 6, theme: "Choice", focus: "Intentionality. Use what makes the sender choose them on ordinary days. Everyday choice, presence over possession." },
-  { day: 7, theme: "Valentine's Day", focus: "Emotional landing. Use what the sender hopes the recipient feels today. Simplicity, presence, no escalation or pressure." },
-];
-
 function safeString(v: unknown, fallback = ""): string {
   return typeof v === "string" ? v : fallback;
 }
 
 function buildFallbackEmails(formData: FormData): GeneratedEmail[] {
   const recipientName = safeString(formData.recipientName, "there");
+  const latelyThinking = safeString(formData.latelyThinking);
   const originStory = safeString(formData.originStory);
-  const meaningfulMoment = safeString(formData.meaningfulMoment);
+  const earlyImpression = safeString(formData.earlyImpression);
   const admiration = safeString(formData.admiration);
-  const tone = safeString(formData.tone, "warm");
+  const vulnerabilityFeeling = safeString(formData.vulnerabilityFeeling);
+  const growthChange = safeString(formData.growthChange);
+  const everydayChoice = safeString(formData.everydayChoice);
+  const valentineHope = safeString(formData.valentineHope);
 
-  const openerByTone: Record<string, string> = {
-    simple: `Hi ${recipientName},`,
-    warm: `Hi ${recipientName},`,
-    playful: `Hey ${recipientName},`,
-    deep: `Hi ${recipientName},`,
-  };
+  const themes = [
+    { day: 1, theme: "Acknowledgement" },
+    { day: 2, theme: "Origin" },
+    { day: 3, theme: "Appreciation" },
+    { day: 4, theme: "Vulnerability" },
+    { day: 5, theme: "Growth" },
+    { day: 6, theme: "Choice" },
+    { day: 7, theme: "Valentine's Day" },
+  ];
 
-  const voiceByTone: Record<string, { vibe: string; signoff: string }> = {
-    simple: { vibe: "clear and honest", signoff: "—" },
-    warm: { vibe: "tender and affectionate", signoff: "—" },
-    playful: { vibe: "light and a little cheeky", signoff: "—" },
-    deep: { vibe: "quiet, reflective, and emotionally honest", signoff: "—" },
-  };
+  return themes.map((d) => {
+    let body = `Hi ${recipientName},\n\n`;
+    
+    if (d.day === 1 && latelyThinking) {
+      body += `Lately I've been thinking about ${latelyThinking}. I don't know why it keeps coming back to me, but it does.\n\nThis week I wanted to slow down and say some things I don't usually say out loud.`;
+    } else if (d.day === 2) {
+      body += originStory 
+        ? `I keep coming back to how we started. ${originStory}. It feels different now, looking back. Something ordinary became something else entirely.`
+        : `I've been thinking about how things started between us. The small moments that didn't seem important at the time.`;
+      if (earlyImpression) {
+        body += `\n\nEarly on, I noticed ${earlyImpression}. I still notice it.`;
+      }
+    } else if (d.day === 3 && admiration) {
+      body += `There's something I don't say enough: ${admiration}. It's one of those things I think about but rarely put into words.`;
+    } else if (d.day === 4 && vulnerabilityFeeling) {
+      body += `Being with you has made me feel more ${vulnerabilityFeeling}. That's not something I expected. But it's true.`;
+    } else if (d.day === 5 && growthChange) {
+      body += `I've been thinking about how we've changed. ${growthChange}. Not dramatic stuff. Just the quiet kind of growing.`;
+    } else if (d.day === 6 && everydayChoice) {
+      body += `You know what makes me choose you on ordinary days? ${everydayChoice}. Not the special moments. Just the regular ones.`;
+    } else if (d.day === 7 && valentineHope) {
+      body += `Today I just want you to feel ${valentineHope}. Nothing more complicated than that.`;
+    } else {
+      body += `I've been sitting with some thoughts about you and wanted to share them, even if they're not perfect.`;
+    }
 
-  const voice = voiceByTone[tone] ?? voiceByTone.warm;
-  const opener = openerByTone[tone] ?? openerByTone.warm;
-
-  return DAY_STRUCTURE.map((d) => {
-    const subject = `${d.theme}: a note for today`;
-
-    const p1 = `${opener}`;
-    const p2 = `Today I just wanted to slow down and say something ${voice.vibe}. I don't want this week to be loud. I want it to be steady—like a hand on your back when you're tired, like the kind of care that doesn't need an audience.`;
-
-    const p3 =
-      d.day === 2 && originStory
-        ? `I keep replaying how it started for us—${originStory}. Not because I'm stuck in the past, but because it reminds me that the best things in my life have happened in ordinary moments that I almost didn't notice.`
-        : d.day === 3 && admiration
-          ? `One thing I've been carrying with me lately is how much I admire you—${admiration}. It's not the obvious stuff. It's the quiet way you show up, the way you keep going, the way you make space for people without making it a performance.`
-          : d.day === 4 && meaningfulMoment
-            ? `There's a moment I think about a lot—${meaningfulMoment}. It reminds me that being close to you changes me. It makes me braver in small ways. It makes me softer in the places I used to keep guarded.`
-            : `I’ve been noticing the small details lately—how our days feel when we're in sync, and how even the messy parts carry something real inside them.`;
-
-    const p4 = `Tomorrow I want to keep going—one step deeper, one note more honest. For now, just let this land: I see you, and I’m grateful you're here.`;
-
-    const body = [p1, "", p2, "", p3, "", p4, "", voice.signoff].join("\n\n");
+    body += `\n\n`;
 
     return {
       day: d.day,
       theme: d.theme,
-      subject,
+      subject: `${d.theme}: a note for today`,
       body,
     };
   });
@@ -120,6 +123,8 @@ function validateEmails(emails: unknown): GeneratedEmail[] {
 }
 
 async function generateEmailsWithAi(formData: FormData, apiKey: string): Promise<GeneratedEmail[]> {
+  const recipientName = safeString(formData.recipientName, "my partner");
+  
   // Build the system prompt
   const systemPrompt = `You are writing a 7-day Valentine's Week email sequence that feels deeply personal and worth paying for.
 
@@ -156,36 +161,50 @@ ${formData.tone === "warm" ? "Affectionate but not cheesy. Like how you'd actual
 ${formData.tone === "playful" ? "Light, fun, maybe teasing. Keep it genuine though." : ""}
 ${formData.tone === "deep" ? "Reflective, but sounds like thinking out loud, not writing poetry." : ""}
 
-RELATIONSHIP: ${safeString(formData.relationshipType)}
-${formData.expressionComfort === "struggle" ? "The sender struggles with words. Keep it simple and direct, like someone trying their best." : formData.expressionComfort === "try" ? "The sender tries but finds it hard. Accessible language." : ""}
-
-MAKE THEM FEEL: ${formData.emotionalIntent?.join(", ") || "loved"}
-
 ${formData.guardrails ? `NEVER MENTION: ${formData.guardrails}` : ""}`;
 
-  // Build the user prompt with all context
-  const userPrompt = `Create 7 emails for ${safeString(formData.recipientName, "my partner")}.
+  // Build the user prompt with all context mapped to specific days
+  const userPrompt = `Create 7 emails for ${recipientName}.
 
-PERSONAL CONTEXT TO USE:
-- Origin story (use for Day 2): ${safeString(formData.originStory, "Not provided, be vague about how they met")}
-- What they admire (use for Day 3): ${safeString(formData.admiration, "Not provided, focus on general appreciation")}
-- What's been on their mind (use for Day 1 & 4): ${safeString(formData.meaningfulMoment, "Not provided, keep it observational")}
+PERSONAL CONTEXT FOR EACH DAY:
+
+Day 1 - Acknowledgement (what's been on their mind lately):
+"${safeString(formData.latelyThinking, "Not provided - use a gentle opening about noticing small things")}"
+
+Day 2 - Origin (how they met + early impressions):
+How they met: "${safeString(formData.originStory, "Not provided - be vague about the meeting")}"
+What was noticed early: "${safeString(formData.earlyImpression, "Not provided - focus on the origin story")}"
+
+Day 3 - Appreciation (what they admire but rarely say):
+"${safeString(formData.admiration, "Not provided - focus on quiet observation")}"
+
+Day 4 - Vulnerability (how being with them has changed the sender):
+"${safeString(formData.vulnerabilityFeeling, "Not provided - focus on inner emotional change")}"
+
+Day 5 - Growth (how the relationship has changed over time):
+"${safeString(formData.growthChange, "Not provided - focus on steadiness and evolution")}"
+
+Day 6 - Choice (what makes them choose this person on ordinary days):
+"${safeString(formData.everydayChoice, "Not provided - focus on everyday presence")}"
+
+Day 7 - Valentine's Day (what the sender hopes they feel today):
+"${safeString(formData.valentineHope, "Not provided - keep it simple and grounded")}"
 
 THE 7-DAY EMOTIONAL ARC:
 
-Day 1 - Acknowledgement: Present-tense recognition. What's been on the sender's mind lately about the recipient. Quiet acknowledgement, inner observation, setting the intention for the week. DO NOT repeat ideas from other days.
+Day 1 - Acknowledgement: Present-tense recognition. Use the "lately thinking" context. Quiet acknowledgement, inner observation, setting the intention for the week. DO NOT repeat ideas from other days.
 
-Day 2 - Origin: Grounding in memory. Use the origin story. Focus on then vs now, how something ordinary became meaningful. DO NOT repeat ideas from other days.
+Day 2 - Origin: Grounding in memory. Use the origin story and early impression. Focus on then vs now, how something ordinary became meaningful. DO NOT repeat ideas from other days.
 
-Day 3 - Appreciation: Being seen. Use what they admire but rarely say. One specific trait or habit, why it matters. DO NOT repeat ideas from other days.
+Day 3 - Appreciation: Being seen. Use the admiration context. One specific trait or habit, why it matters. DO NOT repeat ideas from other days.
 
-Day 4 - Vulnerability: Emotional honesty. How being with them has changed the sender inside. Trust without pressure, no expectations placed on recipient. DO NOT repeat ideas from other days.
+Day 4 - Vulnerability: Emotional honesty. Use the vulnerability context about how they've changed the sender. Trust without pressure, no expectations placed on recipient. DO NOT repeat ideas from other days.
 
-Day 5 - Growth: Shared evolution. How they've grown together over time. Steadiness, learning. Avoid future promises. DO NOT repeat ideas from other days.
+Day 5 - Growth: Shared evolution. Use the growth context. Steadiness, learning. Avoid future promises. DO NOT repeat ideas from other days.
 
-Day 6 - Choice: Intentionality. What makes the sender choose them on ordinary days, not special ones. Everyday choice, presence over possession. DO NOT repeat ideas from other days.
+Day 6 - Choice: Intentionality. Use the everyday choice context. Everyday choice, presence over possession. DO NOT repeat ideas from other days.
 
-Day 7 - Valentine's Day: Emotional landing. What the sender hopes the recipient feels today. Simplicity, presence, no escalation or pressure. Let it land softly.
+Day 7 - Valentine's Day: Emotional landing. Use the valentine hope context. Simplicity, presence, no escalation or pressure. Let it land softly.
 
 OUTPUT FORMAT - Return a JSON array with exactly 7 objects:
 [
@@ -209,7 +228,6 @@ IMPORTANT: Each email is 180-250 words. Each must feel like it could ONLY be wri
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      // Use a cheaper model to reduce failures/time.
       model: "google/gemini-2.5-flash-lite",
       messages: [
         { role: "system", content: systemPrompt },
@@ -246,7 +264,6 @@ serve(async (req) => {
     const { formData } = (await req.json()) as { formData: FormData };
 
     console.log("Generating emails for:", formData?.recipientName);
-    console.log("Relationship type:", formData?.relationshipType);
     console.log("Tone:", formData?.tone);
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY") ?? "";
@@ -280,4 +297,3 @@ serve(async (req) => {
     );
   }
 });
-

@@ -18,10 +18,15 @@ export interface StoryFormData {
   relationshipType: RelationshipType;
   expressionComfort: ExpressionComfort;
   
-  // Story inputs
-  originStory: string;
-  meaningfulMoment: string;
-  admiration: string;
+  // Day-mapped story inputs
+  latelyThinking: string;      // Day 1 - Acknowledgement
+  originStory: string;          // Day 2 - Origin
+  earlyImpression: string;      // Day 2 - What was noticed early on
+  admiration: string;           // Day 3 - Appreciation
+  vulnerabilityFeeling: string; // Day 4 - "Being with them has made me feel more..."
+  growthChange: string;         // Day 5 - How the relationship has changed
+  everydayChoice: string;       // Day 6 - What makes you choose them on ordinary days
+  valentineHope: string;        // Day 7 - What you want them to feel on Valentine's Day
   
   // Preferences
   emotionalIntent: EmotionalIntent[];
