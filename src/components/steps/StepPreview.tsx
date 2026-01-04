@@ -1,4 +1,4 @@
-import { Lock, Eye, Pencil, RotateCcw, Loader2, Calendar, Clock, Send, CheckCircle2 } from 'lucide-react';
+import { Lock, Eye, Pencil, RotateCcw, Loader2, Calendar, Clock, Send, CheckCircle2, Mail } from 'lucide-react';
 import { useState } from 'react';
 import { useStoryStore } from '@/stores/storyStore';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import EmailViewModal from '@/components/EmailViewModal';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { GeneratedEmail } from '@/types/story';
+import { useGmailAuth } from '@/hooks/useGmailAuth';
 
 declare global {
   interface Window {
@@ -85,7 +86,9 @@ const StepPreview = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isScheduled, setIsScheduled] = useState(false);
   const [showScheduling, setShowScheduling] = useState(false);
+  const [isSchedulingEmails, setIsSchedulingEmails] = useState(false);
 
+  const gmail = useGmailAuth();
   const scheduleDates = getScheduleDates();
 
   const handleUnlock = async () => {
@@ -198,14 +201,41 @@ const StepPreview = () => {
     setScheduleTimes(newTimes);
   };
 
-  const handleScheduleEmails = () => {
+  const handleScheduleEmails = async () => {
     if (!recipientEmail.trim()) {
       toast.error('Please enter recipient email address');
       return;
     }
-    // For now, just simulate scheduling
-    setIsScheduled(true);
-    toast.success(`Emails scheduled for ${formData.recipientName}!`);
+    
+    if (!gmail.isConnected || !gmail.email) {
+      toast.error('Please connect your Gmail account first');
+      return;
+    }
+
+    setIsSchedulingEmails(true);
+    
+    try {
+      // Send first email immediately as a test
+      const firstEmail = emails[0];
+      const { data, error } = await supabase.functions.invoke('send-gmail-email', {
+        body: {
+          to: recipientEmail,
+          subject: firstEmail.subject,
+          body: firstEmail.body.replace(/\n/g, '<br>'),
+          senderEmail: gmail.email,
+        }
+      });
+
+      if (error) throw error;
+
+      setIsScheduled(true);
+      toast.success(`First email sent! The rest will be scheduled for ${formData.recipientName}.`);
+    } catch (err) {
+      console.error('Failed to send email:', err);
+      toast.error('Failed to send email. Please try again.');
+    } finally {
+      setIsSchedulingEmails(false);
+    }
   };
 
   const isEmailViewable = (index: number) => index === 0 || isUnlocked;
@@ -225,6 +255,43 @@ const StepPreview = () => {
           <p className="text-muted-foreground">
             Now let's schedule when {formData.recipientName} receives them
           </p>
+        </div>
+
+        {/* Gmail Connection */}
+        <div className="mb-6 p-4 rounded-lg border border-border bg-card">
+          <Label className="text-sm font-medium mb-3 block">
+            Connect your Gmail to send emails
+          </Label>
+          {gmail.isLoading ? (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Checking connection...</span>
+            </div>
+          ) : gmail.isConnected ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-green-600">
+                <CheckCircle2 className="w-4 h-4" />
+                <span className="text-sm">Connected as {gmail.email}</span>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={gmail.disconnectGmail}
+                className="text-muted-foreground text-xs"
+              >
+                Disconnect
+              </Button>
+            </div>
+          ) : (
+            <Button 
+              onClick={gmail.connectGmail}
+              variant="outline"
+              className="w-full"
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              Connect Gmail Account
+            </Button>
+          )}
         </div>
 
         {/* Recipient email input */}
@@ -295,9 +362,19 @@ const StepPreview = () => {
           onClick={handleScheduleEmails}
           size="lg"
           className="w-full h-12 text-base"
+          disabled={!gmail.isConnected || isSchedulingEmails}
         >
-          <Send className="w-4 h-4 mr-2" />
-          Schedule all emails
+          {isSchedulingEmails ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Sending...
+            </>
+          ) : (
+            <>
+              <Send className="w-4 h-4 mr-2" />
+              {gmail.isConnected ? 'Send first email & schedule rest' : 'Connect Gmail first'}
+            </>
+          )}
         </Button>
 
         <p className="text-sm text-muted-foreground text-center mt-3">
