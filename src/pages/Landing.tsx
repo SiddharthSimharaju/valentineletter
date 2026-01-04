@@ -1,7 +1,7 @@
 import { Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import lettersBg from '@/assets/letters-bg.png';
+import lettersBg from '@/assets/letters-bg-optimized.jpg';
 
 const Landing = () => {
   const navigate = useNavigate();
