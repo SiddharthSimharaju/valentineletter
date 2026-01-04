@@ -1,17 +1,20 @@
 import { Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import lettersBg from '@/assets/letters-bg.png';
 
 const Landing = () => {
   const navigate = useNavigate();
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
-      {/* Subtle background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 -left-32 w-64 h-64 bg-rose-subtle rounded-full blur-3xl opacity-60" />
-        <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-warm rounded-full blur-3xl opacity-40" />
-      </div>
+    <main className="min-h-screen flex flex-col items-center justify-center px-6 py-12 relative">
+      {/* Background image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${lettersBg})` }}
+      />
+      {/* Overlay for better text readability */}
+      <div className="absolute inset-0 bg-background/30" />
 
       <div className="relative z-10 max-w-xl mx-auto text-center">
         {/* Small heart icon */}
