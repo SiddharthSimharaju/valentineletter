@@ -8,3 +8,12 @@ verify_jwt = false
 
 [functions.verify-razorpay-payment]
 verify_jwt = false
+
+[functions.gmail-auth-url]
+verify_jwt = false
+
+[functions.gmail-exchange-token]
+verify_jwt = false
+
+[functions.send-gmail-email]
+verify_jwt = false
