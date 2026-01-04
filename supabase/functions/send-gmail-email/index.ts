@@ -1,10 +1,52 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+// Security utilities inlined (can't import from _shared in edge functions)
+const ALLOWED_ORIGINS = [
+  "https://valentineletter.lovable.app",
+  "https://lrzyznsxeidnzcthknwc.lovableproject.com",
+];
+
+function getCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("Origin") || "";
+  const isAllowed = ALLOWED_ORIGINS.some(allowed => origin.startsWith(allowed)) ||
+    origin.includes("localhost");
+  
+  return {
+    "Access-Control-Allow-Origin": isAllowed ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+}
+
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(identifier: string, maxRequests = 5, windowMs = 60000): boolean {
+  const now = Date.now();
+  const record = rateLimitMap.get(identifier);
+
+  if (!record || now > record.resetAt) {
+    rateLimitMap.set(identifier, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+
+  if (record.count >= maxRequests) {
+    return false;
+  }
+
+  record.count++;
+  return true;
+}
+
+function getClientIP(req: Request): string {
+  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("cf-connecting-ip") || "unknown";
+}
+
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return typeof email === "string" && email.length <= 255 && emailRegex.test(email);
+}
 
 async function refreshAccessToken(refreshToken: string): Promise<{ access_token: string; expires_in: number }> {
   const clientId = Deno.env.get("GMAIL_CLIENT_ID");
@@ -40,7 +82,6 @@ function createEmailBody(to: string, from: string, subject: string, body: string
     body,
   ].join("\r\n");
 
-  // Base64url encode the email
   const encoded = btoa(unescape(encodeURIComponent(email)))
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
@@ -50,16 +91,57 @@ function createEmailBody(to: string, from: string, subject: string, body: string
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Rate limiting - 5 emails per minute per IP
+    const clientIP = getClientIP(req);
+    if (!checkRateLimit(clientIP, 5, 60000)) {
+      console.warn("Rate limit exceeded for IP:", clientIP);
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please wait a minute." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const supabase = createClient(supabaseUrl!, supabaseKey!);
 
     const { to, subject, body, senderEmail } = await req.json();
+
+    // Input validation
+    if (!isValidEmail(to)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid recipient email" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!isValidEmail(senderEmail)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid sender email" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (typeof subject !== "string" || subject.length > 200) {
+      return new Response(
+        JSON.stringify({ error: "Invalid subject" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (typeof body !== "string" || body.length > 50000) {
+      return new Response(
+        JSON.stringify({ error: "Invalid email body" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     console.log("Sending email from:", senderEmail, "to:", to);
 
@@ -135,7 +217,7 @@ serve(async (req) => {
       JSON.stringify({ error: message }),
       {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       }
     );
   }

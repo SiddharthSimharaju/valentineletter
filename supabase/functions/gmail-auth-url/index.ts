@@ -1,22 +1,105 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+// Security utilities
+const ALLOWED_ORIGINS = [
+  "https://valentineletter.lovable.app",
+  "https://lrzyznsxeidnzcthknwc.lovableproject.com",
+];
+
+function getCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("Origin") || "";
+  const isAllowed = ALLOWED_ORIGINS.some(allowed => origin.startsWith(allowed)) ||
+    origin.includes("localhost");
+  
+  return {
+    "Access-Control-Allow-Origin": isAllowed ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+}
+
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(identifier: string, maxRequests = 10, windowMs = 60000): boolean {
+  const now = Date.now();
+  const record = rateLimitMap.get(identifier);
+
+  if (!record || now > record.resetAt) {
+    rateLimitMap.set(identifier, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+
+  if (record.count >= maxRequests) {
+    return false;
+  }
+
+  record.count++;
+  return true;
+}
+
+function getClientIP(req: Request): string {
+  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("cf-connecting-ip") || "unknown";
+}
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Rate limiting
+    const clientIP = getClientIP(req);
+    if (!checkRateLimit(clientIP, 10, 60000)) {
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please wait a minute." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const clientId = Deno.env.get("GMAIL_CLIENT_ID");
     if (!clientId) {
       throw new Error("GMAIL_CLIENT_ID not configured");
     }
 
     const { redirectUri } = await req.json();
+
+    // Validate redirect URI
+    if (typeof redirectUri !== "string" || redirectUri.length > 500) {
+      return new Response(
+        JSON.stringify({ error: "Invalid redirect URI" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Only allow redirects to our domains
+    const allowedRedirectDomains = [
+      "valentineletter.lovable.app",
+      "lovableproject.com",
+      "localhost",
+    ];
+    
+    try {
+      const redirectUrl = new URL(redirectUri);
+      const isAllowedDomain = allowedRedirectDomains.some(domain => 
+        redirectUrl.hostname === domain || redirectUrl.hostname.endsWith(`.${domain}`)
+      );
+      
+      if (!isAllowedDomain) {
+        console.warn("Rejected redirect to:", redirectUri);
+        return new Response(
+          JSON.stringify({ error: "Invalid redirect domain" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid redirect URI format" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     
     const scopes = [
       "https://www.googleapis.com/auth/gmail.send",
@@ -47,7 +130,7 @@ serve(async (req) => {
       JSON.stringify({ error: message }),
       {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       }
     );
   }

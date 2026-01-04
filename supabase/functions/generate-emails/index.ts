@@ -1,21 +1,61 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+// Security utilities
+const ALLOWED_ORIGINS = [
+  "https://valentineletter.lovable.app",
+  "https://lrzyznsxeidnzcthknwc.lovableproject.com",
+];
+
+function getCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("Origin") || "";
+  const isAllowed = ALLOWED_ORIGINS.some(allowed => origin.startsWith(allowed)) ||
+    origin.includes("localhost");
+  
+  return {
+    "Access-Control-Allow-Origin": isAllowed ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+}
+
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(identifier: string, maxRequests = 3, windowMs = 60000): boolean {
+  const now = Date.now();
+  const record = rateLimitMap.get(identifier);
+
+  if (!record || now > record.resetAt) {
+    rateLimitMap.set(identifier, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+
+  if (record.count >= maxRequests) {
+    return false;
+  }
+
+  record.count++;
+  return true;
+}
+
+function getClientIP(req: Request): string {
+  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("cf-connecting-ip") || "unknown";
+}
+
 type FormData = {
   userEmail?: string;
   recipientName?: string;
   recipientEmail?: string;
   relationshipType?: string;
   expressionComfort?: "struggle" | "try" | "good" | string;
-  // Day-mapped inputs
-  latelyThinking?: string;      // Day 1 - Acknowledgement
-  originStory?: string;          // Day 2 - Origin
-  earlyImpression?: string;      // Day 2 - What was noticed early on
-  admiration?: string;           // Day 3 - Appreciation
-  vulnerabilityFeeling?: string; // Day 4 - Vulnerability
-  growthChange?: string;         // Day 5 - Growth
-  everydayChoice?: string;       // Day 6 - Choice
-  valentineHope?: string;        // Day 7 - Valentine's Day
-  // Preferences
+  latelyThinking?: string;
+  originStory?: string;
+  earlyImpression?: string;
+  admiration?: string;
+  vulnerabilityFeeling?: string;
+  growthChange?: string;
+  everydayChoice?: string;
+  valentineHope?: string;
   emotionalIntent?: string[];
   guardrails?: string;
   tone?: "simple" | "warm" | "playful" | "deep" | string;
@@ -28,13 +68,10 @@ type GeneratedEmail = {
   body: string;
 };
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
 function safeString(v: unknown, fallback = ""): string {
-  return typeof v === "string" ? v : fallback;
+  if (typeof v !== "string") return fallback;
+  // Sanitize: trim and limit length
+  return v.trim().slice(0, 2000);
 }
 
 function buildFallbackEmails(formData: FormData): GeneratedEmail[] {
@@ -125,7 +162,6 @@ function validateEmails(emails: unknown): GeneratedEmail[] {
 async function generateEmailsWithAi(formData: FormData, apiKey: string): Promise<GeneratedEmail[]> {
   const recipientName = safeString(formData.recipientName, "my partner");
   
-  // Build the system prompt
   const systemPrompt = `You are writing a 7-day Valentine's Week email sequence that feels deeply personal and worth paying for.
 
 These are private letters, not greeting cards. Write as if the sender struggles to express feelings but cares deeply.
@@ -161,9 +197,8 @@ ${formData.tone === "warm" ? "Affectionate but not cheesy. Like how you'd actual
 ${formData.tone === "playful" ? "Light, fun, maybe teasing. Keep it genuine though." : ""}
 ${formData.tone === "deep" ? "Reflective, but sounds like thinking out loud, not writing poetry." : ""}
 
-${formData.guardrails ? `NEVER MENTION: ${formData.guardrails}` : ""}`;
+${formData.guardrails ? `NEVER MENTION: ${safeString(formData.guardrails)}` : ""}`;
 
-  // Build the user prompt with all context mapped to specific days
   const userPrompt = `Create 7 emails for ${recipientName}.
 
 PERSONAL CONTEXT FOR EACH DAY:
@@ -255,13 +290,32 @@ IMPORTANT: Each email is 180-250 words. Each must feel like it could ONLY be wri
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Rate limiting - 3 generations per minute per IP
+    const clientIP = getClientIP(req);
+    if (!checkRateLimit(clientIP, 3, 60000)) {
+      console.warn("Rate limit exceeded for IP:", clientIP);
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please wait a minute." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { formData } = (await req.json()) as { formData: FormData };
+
+    // Input validation
+    if (!formData || typeof formData !== "object") {
+      return new Response(
+        JSON.stringify({ error: "Invalid request data" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     console.log("Generating emails for:", formData?.recipientName);
     console.log("Tone:", formData?.tone);
@@ -293,7 +347,7 @@ serve(async (req) => {
     console.error("Error in generate-emails:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } },
     );
   }
 });
