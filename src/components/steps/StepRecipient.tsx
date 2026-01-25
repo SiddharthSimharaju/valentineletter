@@ -36,6 +36,7 @@ const StepRecipient = () => {
     <StepLayout 
       title="Who is this for?"
       helperText="They'll receive one message per day during Valentine's week."
+      showBack={false}
     >
       <div className="space-y-6">
         <div className="space-y-2">

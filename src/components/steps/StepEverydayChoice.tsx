@@ -35,6 +35,7 @@ const StepEverydayChoice = () => {
             setError('');
           }}
           error={error}
+          helperText="The little details make the biggest difference."
         />
 
         <Button 

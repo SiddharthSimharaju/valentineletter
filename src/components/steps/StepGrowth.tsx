@@ -34,6 +34,7 @@ const StepGrowth = () => {
             setError('');
           }}
           error={error}
+          helperText="Share specific examples — they make your story come alive."
         />
 
         <Button 

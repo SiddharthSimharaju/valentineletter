@@ -1,8 +1,5 @@
-import { ReactNode } from 'react';
 import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import VoiceInputButton from '@/components/VoiceInputButton';
 
 interface TextInputWithVoiceProps {
   id: string;
@@ -12,6 +9,7 @@ interface TextInputWithVoiceProps {
   onChange: (value: string) => void;
   error?: string;
   minHeight?: string;
+  helperText?: string;
 }
 
 const TextInputWithVoice = ({
@@ -22,16 +20,14 @@ const TextInputWithVoice = ({
   onChange,
   error,
   minHeight = '120px',
+  helperText,
 }: TextInputWithVoiceProps) => {
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label htmlFor={id} className="sr-only">{label}</Label>
-        <VoiceInputButton
-          onTranscript={onChange}
-          currentValue={value}
-        />
-      </div>
+      <Label htmlFor={id} className="sr-only">{label}</Label>
+      {helperText && (
+        <p className="text-xs text-muted-foreground italic">{helperText}</p>
+      )}
       <Textarea
         id={id}
         placeholder={placeholder}

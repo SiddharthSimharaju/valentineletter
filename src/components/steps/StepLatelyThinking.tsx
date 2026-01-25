@@ -35,6 +35,7 @@ const StepLatelyThinking = () => {
             setError('');
           }}
           error={error}
+          helperText="The more details you share, the more personal your letters will be."
         />
 
         <Button 
