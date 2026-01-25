@@ -1,4 +1,4 @@
-import { Heart, Mail, Shield, Lock, Sparkles, Clock, PenLine, Send } from 'lucide-react';
+import { Heart, Mail, Shield, Lock, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import lettersBg from '@/assets/letters-bg-optimized.jpg';
@@ -7,49 +7,26 @@ import SampleLetterModal from '@/components/SampleLetterModal';
 const Landing = () => {
   const navigate = useNavigate();
 
-  const features = [
-    {
-      icon: PenLine,
-      title: "Deeply Personal",
-      description: "Every letter is crafted from your unique memories and feelings—never generic templates."
-    },
-    {
-      icon: Clock,
-      title: "7 Days of Surprise",
-      description: "One thoughtful email each day leading up to Valentine's Day, building anticipation."
-    },
-    {
-      icon: Sparkles,
-      title: "AI-Powered Heart",
-      description: "Our AI transforms your raw thoughts into beautifully written letters that still sound like you."
-    },
-    {
-      icon: Send,
-      title: "Scheduled Delivery",
-      description: "Set it and forget it. We'll send each letter at the perfect time."
-    }
-  ];
-
   const howItWorks = [
     {
       step: 1,
       title: "Share Your Story",
-      description: "Answer a few heartfelt questions about your relationship. Type or use voice notes."
+      emoji: "💬"
     },
     {
       step: 2,
-      title: "We Craft Your Letters",
-      description: "Our AI weaves your memories into 7 unique, personal letters."
+      title: "We Craft Letters",
+      emoji: "✨"
     },
     {
       step: 3,
       title: "Review & Approve",
-      description: "Read every letter before anything is sent. Edit or regenerate as needed."
+      emoji: "👀"
     },
     {
       step: 4,
       title: "Magic Happens",
-      description: "Your letters are delivered daily, creating a week of heartfelt surprises."
+      emoji: "💌"
     }
   ];
 
@@ -107,68 +84,40 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* How It Works Section */}
+      {/* How It Works Section - Flow Style */}
       <section className="py-20 px-6 bg-warm/50">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl font-medium text-foreground mb-4">
               How It Works
             </h2>
-            <p className="text-muted-foreground max-w-lg mx-auto">
-              From your heart to their inbox in four simple steps.
+            <p className="text-muted-foreground">
+              From your heart to their inbox.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          {/* Flow Steps */}
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-0">
             {howItWorks.map((item, idx) => (
-              <div 
-                key={item.step}
-                className="flex gap-4 p-6 bg-card rounded-xl border border-border shadow-soft"
-              >
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="font-display text-lg font-medium text-primary">
-                    {item.step}
-                  </span>
-                </div>
-                <div>
-                  <h3 className="font-display text-lg font-medium text-foreground mb-2">
+              <div key={item.step} className="flex items-center">
+                {/* Step Card */}
+                <div className="flex flex-col items-center text-center px-4 py-6 min-w-[140px]">
+                  <div className="text-4xl mb-3">{item.emoji}</div>
+                  <span className="text-xs font-medium text-primary mb-1">Step {item.step}</span>
+                  <h3 className="font-display text-sm md:text-base font-medium text-foreground">
                     {item.title}
                   </h3>
-                  <p className="text-muted-foreground text-sm">
-                    {item.description}
-                  </p>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-20 px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-3xl md:text-4xl font-medium text-foreground mb-4">
-              Why Choose Us
-            </h2>
-            <p className="text-muted-foreground max-w-lg mx-auto">
-              More than a letter generator. A love letter experience.
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-6">
-            {features.map((feature) => (
-              <div 
-                key={feature.title}
-                className="p-6 rounded-xl bg-rose-subtle/50 border border-primary/10 hover:border-primary/20 transition-colors"
-              >
-                <feature.icon className="w-8 h-8 text-primary mb-4" strokeWidth={1.5} />
-                <h3 className="font-display text-lg font-medium text-foreground mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-muted-foreground text-sm">
-                  {feature.description}
-                </p>
+                
+                {/* Arrow between steps */}
+                {idx < howItWorks.length - 1 && (
+                  <ArrowRight className="w-5 h-5 text-primary/40 hidden md:block flex-shrink-0" />
+                )}
+                
+                {/* Vertical line for mobile */}
+                {idx < howItWorks.length - 1 && (
+                  <div className="w-px h-6 bg-primary/20 md:hidden" />
+                )}
               </div>
             ))}
           </div>
@@ -215,9 +164,17 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-20 px-6">
-        <div className="max-w-xl mx-auto text-center">
+      {/* Final CTA - With Background */}
+      <section className="relative py-24 px-6">
+        {/* Background image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${lettersBg})` }}
+        />
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-background/40" />
+        
+        <div className="relative z-10 max-w-xl mx-auto text-center">
           <Heart className="w-10 h-10 mx-auto text-primary mb-6" strokeWidth={1.5} />
           <h2 className="font-display text-3xl md:text-4xl font-medium text-foreground mb-4">
             Ready to tell your story?
