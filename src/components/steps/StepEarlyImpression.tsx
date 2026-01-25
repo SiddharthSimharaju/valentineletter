@@ -34,6 +34,7 @@ const StepEarlyImpression = () => {
             setError('');
           }}
           error={error}
+          helperText="Be descriptive — specific moments create the most meaningful letters."
         />
 
         <Button 

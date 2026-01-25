@@ -26,13 +26,14 @@ const StepOriginStory = () => {
         <TextInputWithVoice
           id="originStory"
           label="Origin story"
-          placeholder="A few lines is enough."
+          placeholder="Where were you? What happened? What did you notice first?"
           value={story}
           onChange={(value) => {
             setStory(value);
             setError('');
           }}
           error={error}
+          helperText="The more details you share, the more personal your letters will be."
         />
 
         <Button 

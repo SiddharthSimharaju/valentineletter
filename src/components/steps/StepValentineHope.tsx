@@ -35,6 +35,7 @@ const StepValentineHope = () => {
             setError('');
           }}
           error={error}
+          helperText="Be specific about the emotions you want to evoke."
         />
 
         <Button 

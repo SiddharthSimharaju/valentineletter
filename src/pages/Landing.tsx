@@ -1,4 +1,4 @@
-import { Heart, Mail, Shield, Lock, ArrowRight } from 'lucide-react';
+import { Heart, Mail, Shield, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import lettersBg from '@/assets/letters-bg-optimized.jpg';
@@ -84,9 +84,9 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* How It Works Section - Flow Style */}
+      {/* How It Works Section - Cards with Heart Arrows */}
       <section className="py-20 px-6 bg-warm/50">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl font-medium text-foreground mb-4">
               How It Works
@@ -96,27 +96,37 @@ const Landing = () => {
             </p>
           </div>
 
-          {/* Flow Steps */}
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-0">
+          {/* Flow Steps with Cards */}
+          <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-0">
             {howItWorks.map((item, idx) => (
-              <div key={item.step} className="flex items-center">
+              <div key={item.step} className="flex flex-col md:flex-row items-center">
                 {/* Step Card */}
-                <div className="flex flex-col items-center text-center px-4 py-6 min-w-[140px]">
+                <div className="bg-card border border-border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow min-w-[160px] text-center">
                   <div className="text-4xl mb-3">{item.emoji}</div>
-                  <span className="text-xs font-medium text-primary mb-1">Step {item.step}</span>
+                  <span className="text-xs font-medium text-primary mb-2 block">Step {item.step}</span>
                   <h3 className="font-display text-sm md:text-base font-medium text-foreground">
                     {item.title}
                   </h3>
                 </div>
                 
-                {/* Arrow between steps */}
+                {/* Heart Arrow between steps - Desktop */}
                 {idx < howItWorks.length - 1 && (
-                  <ArrowRight className="w-5 h-5 text-primary/40 hidden md:block flex-shrink-0" />
+                  <div className="hidden md:flex items-center px-3">
+                    <div className="flex items-center gap-1">
+                      <div className="w-8 h-0.5 bg-gradient-to-r from-primary/40 to-primary/60" />
+                      <Heart className="w-4 h-4 text-primary fill-primary/20" />
+                      <div className="w-8 h-0.5 bg-gradient-to-r from-primary/60 to-primary/40" />
+                    </div>
+                  </div>
                 )}
                 
-                {/* Vertical line for mobile */}
+                {/* Heart Arrow between steps - Mobile */}
                 {idx < howItWorks.length - 1 && (
-                  <div className="w-px h-6 bg-primary/20 md:hidden" />
+                  <div className="flex md:hidden flex-col items-center py-3">
+                    <div className="w-0.5 h-4 bg-gradient-to-b from-primary/40 to-primary/60" />
+                    <Heart className="w-4 h-4 text-primary fill-primary/20 my-1" />
+                    <div className="w-0.5 h-4 bg-gradient-to-b from-primary/60 to-primary/40" />
+                  </div>
                 )}
               </div>
             ))}

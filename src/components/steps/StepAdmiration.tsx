@@ -26,13 +26,14 @@ const StepAdmiration = () => {
         <TextInputWithVoice
           id="admiration"
           label="Admiration"
-          placeholder="Type here…"
+          placeholder="What quality or trait stands out? When do you notice it most?"
           value={admiration}
           onChange={(value) => {
             setAdmiration(value);
             setError('');
           }}
           error={error}
+          helperText="Be specific — the little things make the biggest impact."
         />
 
         <Button 
