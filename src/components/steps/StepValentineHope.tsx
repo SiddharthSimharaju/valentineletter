@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useStoryStore } from '@/stores/storyStore';
 import StepLayout from '@/components/StepLayout';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import TextInputWithVoice from '@/components/TextInputWithVoice';
 
 const StepValentineHope = () => {
   const { formData, updateFormData, nextStep } = useStoryStore();
@@ -26,22 +25,17 @@ const StepValentineHope = () => {
       helperText="Not what you want to say. What you want them to walk away feeling."
     >
       <div className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="valentineHope" className="sr-only">Valentine's hope</Label>
-          <Textarea
-            id="valentineHope"
-            placeholder="I want them to feel..."
-            value={hope}
-            onChange={(e) => {
-              setHope(e.target.value);
-              setError('');
-            }}
-            className="min-h-[120px] text-base resize-none"
-          />
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
-        </div>
+        <TextInputWithVoice
+          id="valentineHope"
+          label="Valentine's hope"
+          placeholder="I want them to feel..."
+          value={hope}
+          onChange={(value) => {
+            setHope(value);
+            setError('');
+          }}
+          error={error}
+        />
 
         <Button 
           onClick={handleContinue}
