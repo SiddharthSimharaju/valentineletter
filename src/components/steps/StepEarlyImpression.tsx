@@ -1,14 +1,12 @@
 import { useState } from 'react';
 import { useStoryStore } from '@/stores/storyStore';
 import StepLayout from '@/components/StepLayout';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import TextInputWithVoice from '@/components/TextInputWithVoice';
 
 const StepEarlyImpression = () => {
   const { formData, updateFormData, nextStep } = useStoryStore();
   const [impression, setImpression] = useState(formData.earlyImpression || '');
-
   const [error, setError] = useState('');
 
   const handleContinue = () => {
@@ -26,22 +24,17 @@ const StepEarlyImpression = () => {
       helperText="Before you knew them well. A small thing that stuck with you."
     >
       <div className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="earlyImpression" className="sr-only">Early impression</Label>
-          <Textarea
-            id="earlyImpression"
-            placeholder="I remember noticing..."
-            value={impression}
-            onChange={(e) => {
-              setImpression(e.target.value);
-              setError('');
-            }}
-            className="min-h-[120px] text-base resize-none"
-          />
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
-        </div>
+        <TextInputWithVoice
+          id="earlyImpression"
+          label="Early impression"
+          placeholder="I remember noticing..."
+          value={impression}
+          onChange={(value) => {
+            setImpression(value);
+            setError('');
+          }}
+          error={error}
+        />
 
         <Button 
           onClick={handleContinue}

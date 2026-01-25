@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useStoryStore } from '@/stores/storyStore';
 import StepLayout from '@/components/StepLayout';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import TextInputWithVoice from '@/components/TextInputWithVoice';
 
 const StepAdmiration = () => {
   const { formData, updateFormData, nextStep } = useStoryStore();
@@ -24,22 +23,17 @@ const StepAdmiration = () => {
       title="What's something you admire about them but don't say often?"
     >
       <div className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="admiration" className="sr-only">Admiration</Label>
-          <Textarea
-            id="admiration"
-            placeholder="Type here…"
-            value={admiration}
-            onChange={(e) => {
-              setAdmiration(e.target.value);
-              setError('');
-            }}
-            className="min-h-[120px] text-base resize-none"
-          />
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
-        </div>
+        <TextInputWithVoice
+          id="admiration"
+          label="Admiration"
+          placeholder="Type here…"
+          value={admiration}
+          onChange={(value) => {
+            setAdmiration(value);
+            setError('');
+          }}
+          error={error}
+        />
 
         <Button 
           onClick={handleContinue}

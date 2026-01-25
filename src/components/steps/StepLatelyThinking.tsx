@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useStoryStore } from '@/stores/storyStore';
 import StepLayout from '@/components/StepLayout';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import TextInputWithVoice from '@/components/TextInputWithVoice';
 
 const StepLatelyThinking = () => {
   const { formData, updateFormData, nextStep } = useStoryStore();
@@ -26,22 +25,17 @@ const StepLatelyThinking = () => {
       helperText="Maybe it's something they said, a feeling you can't shake, or just... them."
     >
       <div className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="latelyThinking" className="sr-only">What's on your mind</Label>
-          <Textarea
-            id="latelyThinking"
-            placeholder="I keep thinking about..."
-            value={thinking}
-            onChange={(e) => {
-              setThinking(e.target.value);
-              setError('');
-            }}
-            className="min-h-[120px] text-base resize-none"
-          />
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
-        </div>
+        <TextInputWithVoice
+          id="latelyThinking"
+          label="What's on your mind"
+          placeholder="I keep thinking about..."
+          value={thinking}
+          onChange={(value) => {
+            setThinking(value);
+            setError('');
+          }}
+          error={error}
+        />
 
         <Button 
           onClick={handleContinue}
