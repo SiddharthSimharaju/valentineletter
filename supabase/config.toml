@@ -17,3 +17,9 @@ verify_jwt = false
 
 [functions.send-gmail-email]
 verify_jwt = false
+
+[functions.gmail-check-connection]
+verify_jwt = false
+
+[functions.gmail-disconnect]
+verify_jwt = false
