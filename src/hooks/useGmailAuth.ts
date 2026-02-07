@@ -14,28 +14,26 @@ export function useGmailAuth() {
     isLoading: true,
   });
 
-  // Check if Gmail is already connected
+  // Check if Gmail is already connected via edge function (no direct table access)
   const checkConnection = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('gmail_tokens')
-        .select('email')
-        .limit(1)
-        .single();
+      const { data, error } = await supabase.functions.invoke('gmail-check-connection');
 
-      if (data && !error) {
-        setConnection({
-          isConnected: true,
-          email: data.email,
-          isLoading: false,
-        });
-      } else {
+      if (error) {
+        console.error('Error checking Gmail connection:', error);
         setConnection({
           isConnected: false,
           email: null,
           isLoading: false,
         });
+        return;
       }
+
+      setConnection({
+        isConnected: data?.isConnected || false,
+        email: data?.email || null,
+        isLoading: false,
+      });
     } catch {
       setConnection({
         isConnected: false,
@@ -106,14 +104,18 @@ export function useGmailAuth() {
     }
   };
 
-  // Disconnect Gmail
+  // Disconnect Gmail via edge function (no direct table access)
   const disconnectGmail = async () => {
     try {
       if (connection.email) {
-        await supabase
-          .from('gmail_tokens')
-          .delete()
-          .eq('email', connection.email);
+        const { error } = await supabase.functions.invoke('gmail-disconnect', {
+          body: { email: connection.email }
+        });
+
+        if (error) {
+          console.error('Error disconnecting Gmail:', error);
+          return;
+        }
       }
       
       setConnection({
