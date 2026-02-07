@@ -173,7 +173,7 @@ function validateEmails(emails: unknown): GeneratedEmail[] {
 async function generateEmailsWithAi(formData: FormData, apiKey: string): Promise<GeneratedEmail[]> {
   const recipientName = safeString(formData.recipientName, "my partner");
   
-  const systemPrompt = `You are writing a 7-day Valentine's Week email sequence. Each email should feel like a private letter—an inner thought finally put into words.
+  const systemPrompt = `You are writing a 7-day Valentine's Week email sequence. Each email should feel like a private letter, an inner thought finally put into words.
 
 CORE PHILOSOPHY:
 - Write as if the reader is the only person in the world reading this
@@ -193,7 +193,7 @@ WRITING STYLE:
 THINGS TO NEVER USE:
 - Generic phrases: "you mean a lot to me", "special feeling", "thinking of us", "special bond"
 - AI-sounding phrases: "I find myself", "in this moment", "journey", "truly", "deeply", "grateful for"
-- Em dashes or double hyphens
+- Em dashes (—) or double hyphens (--). Use commas, periods, or separate sentences instead.
 - Hallmark card phrases or clichés
 - Metaphors unless they feel grounded and specific
 - Dramatic sign-offs
@@ -203,7 +203,7 @@ EACH EMAIL MUST INCLUDE:
 - One emotional contrast (quiet vs loud, then vs now, said vs unsaid, visible vs hidden)
 - One forward-looking line that gently leads to the next day
 
-LENGTH: 200-250 words. Long enough to feel substantial, but not verbose.
+LENGTH: 250-300 words. Long enough to feel substantial, but not verbose.
 
 CRITICAL TEST: If an email could be sent to anyone without changing a sentence, it fails. Rewrite it with specifics from the provided context.
 
@@ -263,7 +263,7 @@ OUTPUT FORMAT - Return a JSON array with exactly 7 objects:
     "day": 1,
     "theme": "Acknowledgement",
     "subject": "Short, intimate subject line (not generic)",
-    "body": "Email body here. Use \\n\\n for paragraph breaks. 200-250 words."
+    "body": "Email body here. Use \\n\\n for paragraph breaks. 250-300 words. NO em dashes."
   },
   ...
 ]
