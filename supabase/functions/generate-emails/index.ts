@@ -173,7 +173,7 @@ function validateEmails(emails: unknown): GeneratedEmail[] {
 async function generateEmailsWithAi(formData: FormData, apiKey: string): Promise<GeneratedEmail[]> {
   const recipientName = safeString(formData.recipientName, "my partner");
   
-  const systemPrompt = `You are writing a 7-day Valentine's Week email sequence. Each email should feel like a private letter, an inner thought finally put into words.
+  const systemPrompt = `You are writing a 7-day Valentine's Week email sequence. Write emails as if they are private letters, not greeting cards. Each email should feel like an inner thought finally put into words.
 
 CORE PHILOSOPHY:
 - Write as if the reader is the only person in the world reading this
@@ -190,20 +190,21 @@ WRITING STYLE:
 - Use contractions naturally (don't, can't, I'm, you're)
 - Incomplete sentences are okay. Like this.
 
-THINGS TO NEVER USE:
-- Generic phrases: "you mean a lot to me", "special feeling", "thinking of us", "special bond"
-- AI-sounding phrases: "I find myself", "in this moment", "journey", "truly", "deeply", "grateful for"
-- Em dashes (—) or double hyphens (--). Use commas, periods, or separate sentences instead.
-- Hallmark card phrases or clichés
+ABSOLUTELY FORBIDDEN - NEVER USE THESE:
+- Em dashes (—) or double hyphens (--). NEVER. Use commas, periods, or separate sentences instead.
+- Generic phrases: "you mean a lot to me", "special feeling", "thinking of us", "special bond", "means so much"
+- AI-sounding phrases: "I find myself", "in this moment", "journey", "truly", "deeply", "grateful for", "cherish"
+- Hallmark card phrases or clichés of any kind
 - Metaphors unless they feel grounded and specific
 - Dramatic sign-offs
+- Any flowery or greeting-card language
 
 EACH EMAIL MUST INCLUDE:
 - One inner realization (a quiet discovery about self or the relationship)
 - One emotional contrast (quiet vs loud, then vs now, said vs unsaid, visible vs hidden)
 - One forward-looking line that gently leads to the next day
 
-LENGTH: 250-300 words. Long enough to feel substantial, but not verbose.
+LENGTH: 250-300 words. Long enough to feel substantial, but not verbose. Count your words.
 
 CRITICAL TEST: If an email could be sent to anyone without changing a sentence, it fails. Rewrite it with specifics from the provided context.
 
@@ -263,12 +264,19 @@ OUTPUT FORMAT - Return a JSON array with exactly 7 objects:
     "day": 1,
     "theme": "Acknowledgement",
     "subject": "Short, intimate subject line (not generic)",
-    "body": "Email body here. Use \\n\\n for paragraph breaks. 250-300 words. NO em dashes."
+    "body": "Email body here. Use \\n\\n for paragraph breaks. 250-300 words. ABSOLUTELY NO em dashes (—) or double hyphens (--)."
   },
   ...
 ]
 
-IMPORTANT: Each email must feel like it could ONLY be written for this specific person. Include emotional contrasts and inner realizations in every email.`;
+FINAL CHECKLIST BEFORE RESPONDING:
+1. Did you count words? Each email MUST be 250-300 words.
+2. Did you remove ALL em dashes (—) and double hyphens (--)? Replace with commas or periods.
+3. Does each email have an inner realization, emotional contrast, and forward-looking line?
+4. Did you avoid ALL generic phrases like "means so much", "special bond", "grateful for"?
+5. Does each email feel like it could ONLY be written for this specific person?
+
+If any check fails, rewrite before responding.`;
 
   console.log("Calling AI gateway (emails only)...");
 
