@@ -66,6 +66,17 @@ type GeneratedEmail = {
   theme: string;
   subject: string;
   body: string;
+  imageUrl?: string;
+};
+
+const imagePrompts: Record<number, string> = {
+  1: "Soft cinematic illustration of morning light through curtains onto an empty chair, muted warm tones, intimate quiet domestic scene, no text, atmospheric",
+  2: "Soft cinematic illustration of two coffee cups on a wooden table by a window with soft rain outside, muted nostalgic tones, intimate quiet scene, no text",
+  3: "Soft cinematic illustration of hands gently holding a worn book, soft afternoon light, muted warm palette, intimate contemplative mood, no text",
+  4: "Soft cinematic illustration of an unmade bed with morning light, soft shadows, muted intimate tones, vulnerability and trust, no text",
+  5: "Soft cinematic illustration of two pairs of shoes by a doorway, one neat one messy, muted warm light, quiet domestic intimacy, no text",
+  6: "Soft cinematic illustration of a kitchen counter with two mugs and soft evening light, muted cozy tones, everyday love scene, no text",
+  7: "Soft cinematic illustration of intertwined hands resting on a blanket, soft golden hour light, muted romantic tones, quiet affection, no text",
 };
 
 function safeString(v: unknown, fallback = ""): string {
@@ -162,34 +173,39 @@ function validateEmails(emails: unknown): GeneratedEmail[] {
 async function generateEmailsWithAi(formData: FormData, apiKey: string): Promise<GeneratedEmail[]> {
   const recipientName = safeString(formData.recipientName, "my partner");
   
-  const systemPrompt = `You are writing a 7-day Valentine's Week email sequence that feels deeply personal and worth paying for.
+  const systemPrompt = `You are writing a 7-day Valentine's Week email sequence. Each email should feel like a private letter—an inner thought finally put into words.
 
-These are private letters, not greeting cards. Write as if the sender struggles to express feelings but cares deeply.
-
-NEVER mention AI, automation, or templates.
+CORE PHILOSOPHY:
+- Write as if the reader is the only person in the world reading this
+- Each email is an inner thought finally put into words
+- The tone should feel intimate, reflective, and emotionally honest
+- Write with depth. Write with patience.
 
 WRITING STYLE:
-- Sound human, not polished. Real people ramble, pause, trail off
-- Use contractions (don't, can't, I'm, you're)
-- Short paragraphs, 2-3 sentences max
-- Incomplete sentences sometimes. Like this.
-- Simple words, no flowery language
-- Reference small specific moments, not big declarations
+- Use specific emotional observations, not generic phrases
+- Reference time, pauses, everyday moments
+- Allow silence and restraint in your writing
+- Let sentences breathe
+- Prefer short paragraphs (2-3 sentences max)
+- Use contractions naturally (don't, can't, I'm, you're)
+- Incomplete sentences are okay. Like this.
 
-THINGS TO NEVER DO:
-- Never use em dashes or double hyphens
-- Never use: "I find myself", "in this moment", "journey", "truly", "deeply", "grateful for", "special bond"
-- No Hallmark card phrases or clichés
-- No perfect grammar
-- Don't start sentences the same way
-- No dramatic sign-offs
+THINGS TO NEVER USE:
+- Generic phrases: "you mean a lot to me", "special feeling", "thinking of us", "special bond"
+- AI-sounding phrases: "I find myself", "in this moment", "journey", "truly", "deeply", "grateful for"
+- Em dashes or double hyphens
+- Hallmark card phrases or clichés
+- Metaphors unless they feel grounded and specific
+- Dramatic sign-offs
 
 EACH EMAIL MUST INCLUDE:
-- One inner realization
-- One emotional contrast (quiet vs loud, then vs now, said vs unsaid)
-- One line that gently leads into the next day
+- One inner realization (a quiet discovery about self or the relationship)
+- One emotional contrast (quiet vs loud, then vs now, said vs unsaid, visible vs hidden)
+- One forward-looking line that gently leads to the next day
 
-CRITICAL TEST: If an email could be sent to anyone without changing a sentence, it fails. Rewrite it with specifics.
+LENGTH: 200-250 words. Long enough to feel substantial, but not verbose.
+
+CRITICAL TEST: If an email could be sent to anyone without changing a sentence, it fails. Rewrite it with specifics from the provided context.
 
 TONE: ${safeString(formData.tone, "warm")}
 ${formData.tone === "simple" ? "Super straightforward. Say what you mean, nothing extra." : ""}
@@ -227,32 +243,32 @@ Day 7 - Valentine's Day (what the sender hopes they feel today):
 
 THE 7-DAY EMOTIONAL ARC:
 
-Day 1 - Acknowledgement: Present-tense recognition. Use the "lately thinking" context. Quiet acknowledgement, inner observation, setting the intention for the week. DO NOT repeat ideas from other days.
+Day 1 - Acknowledgement: A quiet realization about the present. Use the "lately thinking" context. Set the intention for the week. Include a line that leads to Day 2.
 
-Day 2 - Origin: Grounding in memory. Use the origin story and early impression. Focus on then vs now, how something ordinary became meaningful. DO NOT repeat ideas from other days.
+Day 2 - Origin: Ground in memory. Use the origin story and early impression. Contrast: then vs now. Include a line that leads to Day 3.
 
-Day 3 - Appreciation: Being seen. Use the admiration context. One specific trait or habit, why it matters. DO NOT repeat ideas from other days.
+Day 3 - Appreciation: Being truly seen. Use the admiration context. One specific trait or habit, why it matters quietly. Include a line that leads to Day 4.
 
-Day 4 - Vulnerability: Emotional honesty. Use the vulnerability context about how they've changed the sender. Trust without pressure, no expectations placed on recipient. DO NOT repeat ideas from other days.
+Day 4 - Vulnerability: Emotional honesty without pressure. Use the vulnerability context. Contrast: what's visible vs what's hidden. Include a line that leads to Day 5.
 
-Day 5 - Growth: Shared evolution. Use the growth context. Steadiness, learning. Avoid future promises. DO NOT repeat ideas from other days.
+Day 5 - Growth: Quiet evolution. Use the growth context. Contrast: who you were vs who you're becoming. Include a line that leads to Day 6.
 
-Day 6 - Choice: Intentionality. Use the everyday choice context. Everyday choice, presence over possession. DO NOT repeat ideas from other days.
+Day 6 - Choice: Intentionality in ordinary moments. Use the everyday choice context. Contrast: loud declarations vs quiet presence. Include a line that leads to Day 7.
 
-Day 7 - Valentine's Day: Emotional landing. Use the valentine hope context. Simplicity, presence, no escalation or pressure. Let it land softly.
+Day 7 - Valentine's Day: Emotional landing. Use the valentine hope context. Simplicity, presence. Let it land softly. No forward line needed—this is the ending.
 
 OUTPUT FORMAT - Return a JSON array with exactly 7 objects:
 [
   {
     "day": 1,
     "theme": "Acknowledgement",
-    "subject": "Short, casual subject line",
-    "body": "Email body here. Use \\n\\n for paragraph breaks."
+    "subject": "Short, intimate subject line (not generic)",
+    "body": "Email body here. Use \\n\\n for paragraph breaks. 200-250 words."
   },
   ...
 ]
 
-IMPORTANT: Each email is 180-250 words. Each must feel like it could ONLY be written for this person.`;
+IMPORTANT: Each email must feel like it could ONLY be written for this specific person. Include emotional contrasts and inner realizations in every email.`;
 
   console.log("Calling AI gateway (emails only)...");
 
@@ -286,7 +302,45 @@ IMPORTANT: Each email is 180-250 words. Each must feel like it could ONLY be wri
 
   const json = extractJsonArrayFromText(content ?? "");
   const parsed = JSON.parse(json);
-  return validateEmails(parsed);
+  const emails = validateEmails(parsed);
+
+  // Generate images for each email
+  console.log("Generating images for emails...");
+  const emailsWithImages = await Promise.all(
+    emails.map(async (email) => {
+      try {
+        const imagePrompt = imagePrompts[email.day] || imagePrompts[1];
+        const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-image",
+            messages: [{ role: "user", content: imagePrompt }],
+            modalities: ["image", "text"],
+          }),
+        });
+
+        if (imageResponse.ok) {
+          const imageData = await imageResponse.json();
+          const imageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+          if (imageUrl) {
+            console.log(`Generated image for day ${email.day}`);
+            return { ...email, imageUrl };
+          }
+        }
+        console.warn(`Failed to generate image for day ${email.day}`);
+        return email;
+      } catch (err) {
+        console.warn(`Image generation error for day ${email.day}:`, err);
+        return email;
+      }
+    })
+  );
+
+  return emailsWithImages;
 }
 
 serve(async (req) => {

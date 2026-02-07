@@ -11,38 +11,50 @@ interface SampleLetterModalProps {
 const sampleLetters = [
   {
     day: 1,
-    subject: "Something I noticed lately",
-    content: `Hey,
+    subject: "A quiet thought",
+    content: `There's this thing that happens sometimes.
 
-I keep catching myself thinking about you at random moments. Like yesterday, I was just making coffee and remembered how you always hold your mug with both hands.
+I'll be in the middle of something ordinary—folding laundry, waiting for the kettle—and you'll cross my mind. Not a memory exactly. More like a feeling that settles in without asking.
 
-I don't know why that stuck with me. It just did.
+I realized I don't tell you about these moments. They feel too small to mention. But maybe that's the problem. Maybe the small things are the ones that matter most.
 
-This week I wanted to slow down and say some things I don't usually say out loud. Nothing dramatic. Just... honest.
+This week, I want to try something different. I want to say the things I usually keep to myself. Not because they're urgent. Because they're true.
 
-More tomorrow.`
+I don't know if I'll get it right. But I want to try.
+
+Tomorrow, I'll tell you about a memory I keep coming back to.`
   },
   {
     day: 2,
-    subject: "How it started",
-    content: `I was thinking about when we first met.
+    subject: "Before you knew",
+    content: `I've been thinking about the beginning.
 
-You probably don't remember this, but you were late. And you apologized like three times even though it didn't matter.
+Not the official beginning—the first date, the first time we said something real. I mean before that. The part where I was still figuring out if I should pay attention to what I was feeling.
 
-Something about that made me want to know you better. The ordinary stuff became important somewhere along the way.
+There was a moment. You probably don't remember it. We were talking about something that didn't matter, and you paused mid-sentence to really listen to someone else. Just stopped and gave them your full attention.
 
-Funny how that works.`
+I remember thinking: oh. That's who you are.
+
+It's strange how the loud moments fade, but the quiet ones stay. That pause taught me more about you than a hundred conversations could have.
+
+I'm still learning from those small things.
+
+Tomorrow, something I don't say enough.`
   },
   {
     day: 7,
-    subject: "Valentine's Day",
-    content: `Seven days.
+    subject: "Today",
+    content: `Seven days of saying things I usually don't.
 
-I wasn't sure I could do this—write something every day without it feeling forced. But it didn't feel forced. It felt like finally saying things I think about but never say.
+I thought it would feel strange, writing like this. Putting words to feelings I normally let sit in silence. But it didn't feel strange. It felt like breathing out after holding my breath for too long.
 
-Today I just want you to feel seen. Not in a big, dramatic way. Just... noticed. Chosen.
+Here's what I know today: I don't need a reason to choose you. I just do. In the morning when you're still half-asleep. In the evening when we're both too tired to talk. In the ordinary hours that make up most of life.
 
-That's it. That's the whole thing.`
+I can't promise I'll always get it right. But I can promise I'll keep trying to see you. Really see you. Not just the version of you that's easy to love, but all of it.
+
+That's the whole thing. That's what I wanted to say.
+
+Happy Valentine's Day.`
   }
 ];
 
