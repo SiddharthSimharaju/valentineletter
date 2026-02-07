@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Clock, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { GeneratedEmail } from '@/types/story';
 
@@ -14,8 +13,7 @@ interface EmailViewModalProps {
   dayIndex: number;
   dayTheme: string;
   isEditable: boolean;
-  scheduledTime?: string;
-  onSave?: (email: GeneratedEmail, time: string) => void;
+  onSave?: (email: GeneratedEmail) => void;
 }
 
 const EmailViewModal = ({
@@ -25,12 +23,10 @@ const EmailViewModal = ({
   dayIndex,
   dayTheme,
   isEditable,
-  scheduledTime = '09:00',
   onSave,
 }: EmailViewModalProps) => {
   const [subject, setSubject] = useState(email?.subject || '');
   const [body, setBody] = useState(email?.body || '');
-  const [time, setTime] = useState(scheduledTime);
 
   useEffect(() => {
     if (email) {
@@ -41,7 +37,7 @@ const EmailViewModal = ({
 
   const handleSave = () => {
     if (onSave && email) {
-      onSave({ ...email, subject, body }, time);
+      onSave({ ...email, subject, body });
     }
     onClose();
   };
@@ -91,19 +87,9 @@ const EmailViewModal = ({
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="time" className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  Send at
-                </Label>
-                <Input
-                  id="time"
-                  type="time"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  className="w-32"
-                />
-              </div>
+              <p className="text-sm text-muted-foreground">
+                All emails are sent at 9:00 PM daily
+              </p>
 
               <div className="flex gap-3 pt-4">
                 <Button variant="outline" onClick={onClose} className="flex-1">
