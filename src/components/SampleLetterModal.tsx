@@ -11,48 +11,38 @@ interface SampleLetterModalProps {
 const sampleLetters = [
   {
     day: 1,
-    subject: "I've been thinking about you",
-    content: `Hey Maya,
+    subject: "Something I noticed lately",
+    content: `Hey,
 
-I've been wanting to tell you something, and I figured... why not just say it?
+I keep catching myself thinking about you at random moments. Like yesterday, I was just making coffee and remembered how you always hold your mug with both hands.
 
-Lately, every time I see you laugh at something small—like that video you showed me last week—I catch myself just watching. Not in a weird way. Just... grateful, I guess.
+I don't know why that stuck with me. It just did.
 
-You've been on my mind more than usual. And I wanted you to know that.
+This week I wanted to slow down and say some things I don't usually say out loud. Nothing dramatic. Just... honest.
 
-More tomorrow.
-— J`
+More tomorrow.`
   },
   {
     day: 2,
-    subject: "Do you remember when we first met?",
-    content: `Maya,
+    subject: "How it started",
+    content: `I was thinking about when we first met.
 
-I was thinking about the first time we really talked. That coffee shop with the broken AC, remember?
+You probably don't remember this, but you were late. And you apologized like three times even though it didn't matter.
 
-You were reading something on your phone and laughing to yourself, and I remember thinking: "I want to know what's so funny."
+Something about that made me want to know you better. The ordinary stuff became important somewhere along the way.
 
-That was the start of everything, wasn't it?
-
-I'm glad I asked.
-
-— J`
+Funny how that works.`
   },
   {
     day: 7,
-    subject: "Happy Valentine's Day",
-    content: `Maya,
+    subject: "Valentine's Day",
+    content: `Seven days.
 
-Seven days of letters. I wasn't sure I could do it—but here we are.
+I wasn't sure I could do this—write something every day without it feeling forced. But it didn't feel forced. It felt like finally saying things I think about but never say.
 
-I hope this week made you feel what I feel every day: that you're seen, that you're chosen, and that you matter more than you know.
+Today I just want you to feel seen. Not in a big, dramatic way. Just... noticed. Chosen.
 
-I don't need a holiday to love you. But I'll take any excuse to remind you.
-
-Happy Valentine's Day.
-
-Yours,
-J`
+That's it. That's the whole thing.`
   }
 ];
 

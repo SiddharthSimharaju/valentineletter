@@ -79,9 +79,8 @@ const formatDate = (date: Date) => {
 const StepPreview = () => {
   const { emails, isUnlocked, formData, setEmails, setIsUnlocked, setIsPaid, reset } = useStoryStore();
   const [selectedEmailIndex, setSelectedEmailIndex] = useState<number | null>(null);
-  const [scheduleTimes, setScheduleTimes] = useState<string[]>(
-    Array(7).fill('09:00')
-  );
+  // Fixed to 9pm IST daily - users cannot change this
+  const scheduleTimes = Array(7).fill('21:00');
   const [recipientEmail, setRecipientEmail] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isScheduled, setIsScheduled] = useState(false);
@@ -98,7 +97,7 @@ const StepPreview = () => {
     try {
       // Create order
       const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
-        body: { amount: 499, currency: 'INR' }
+        body: { amount: 149, currency: 'INR' }
       });
 
       if (error || !data?.orderId) {
@@ -183,22 +182,12 @@ const StepPreview = () => {
     }
   };
 
-  const handleSaveEmail = (updatedEmail: GeneratedEmail, time: string) => {
+  const handleSaveEmail = (updatedEmail: GeneratedEmail) => {
     if (selectedEmailIndex === null) return;
     
     const newEmails = [...emails];
     newEmails[selectedEmailIndex] = updatedEmail;
     setEmails(newEmails);
-
-    const newTimes = [...scheduleTimes];
-    newTimes[selectedEmailIndex] = time;
-    setScheduleTimes(newTimes);
-  };
-
-  const handleTimeChange = (index: number, time: string) => {
-    const newTimes = [...scheduleTimes];
-    newTimes[index] = time;
-    setScheduleTimes(newTimes);
   };
 
   const handleScheduleEmails = async () => {
@@ -342,14 +331,9 @@ const StepPreview = () => {
                   >
                     <Pencil className="w-4 h-4 text-muted-foreground" />
                   </button>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4 text-muted-foreground" />
-                    <Input
-                      type="time"
-                      value={scheduleTimes[index]}
-                      onChange={(e) => handleTimeChange(index, e.target.value)}
-                      className="w-24 h-8 text-sm"
-                    />
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <Clock className="w-4 h-4" />
+                    <span>9:00 PM</span>
                   </div>
                 </div>
               </div>
@@ -400,7 +384,6 @@ const StepPreview = () => {
           dayIndex={selectedEmailIndex ?? 0}
           dayTheme={DAY_THEMES[selectedEmailIndex ?? 0]}
           isEditable={true}
-          scheduledTime={scheduleTimes[selectedEmailIndex ?? 0]}
           onSave={handleSaveEmail}
         />
       </div>
@@ -560,7 +543,7 @@ const StepPreview = () => {
             )}
           </Button>
           <p className="text-sm text-muted-foreground">
-            ₹499 one-time • All 7 emails • Full editing access
+            ₹149 one-time • All 7 emails • Full editing access
           </p>
           
           {/* Temporary test button */}
@@ -607,7 +590,6 @@ const StepPreview = () => {
         dayIndex={selectedEmailIndex ?? 0}
         dayTheme={DAY_THEMES[selectedEmailIndex ?? 0]}
         isEditable={selectedEmailIndex !== null && isEmailEditable(selectedEmailIndex)}
-        scheduledTime={scheduleTimes[selectedEmailIndex ?? 0]}
         onSave={handleSaveEmail}
       />
     </div>
