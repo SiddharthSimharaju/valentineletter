@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStoryStore } from '@/stores/storyStore';
 import StepLayout from '@/components/StepLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { ArrowLeft } from 'lucide-react';
 
 const StepRecipient = () => {
   const { formData, updateFormData, nextStep } = useStoryStore();
@@ -32,13 +34,25 @@ const StepRecipient = () => {
     nextStep();
   };
 
+  const navigate = useNavigate();
+
   return (
     <StepLayout 
       title="Who is this for?"
-      helperText="They'll receive one message per day during Valentine's week."
+      helperText="They'll receive your letter on Valentine's Day."
       showBack={false}
     >
       <div className="space-y-6">
+        {/* Back to landing */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/')}
+          className="-mt-4 -ml-2 text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          Back
+        </Button>
         <div className="space-y-2">
           <Label htmlFor="recipientName" className="sr-only">Their name</Label>
           <Input

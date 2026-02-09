@@ -47,7 +47,7 @@ interface RazorpayResponse {
 }
 
 // Valentine's Day
-const VALENTINES_DATE = new Date(2025, 1, 14); // Feb 14, 2025
+const VALENTINES_DATE = new Date(2026, 1, 14); // Feb 14, 2026
 
 const formatDate = (date: Date) => {
   return date.toLocaleDateString('en-US', { 
@@ -60,7 +60,7 @@ const formatDate = (date: Date) => {
 const StepPreview = () => {
   const { emails, isUnlocked, formData, setEmails, setIsUnlocked, setIsPaid, reset } = useStoryStore();
   const [isViewingEmail, setIsViewingEmail] = useState(false);
-  const [recipientEmail, setRecipientEmail] = useState('');
+  const [recipientEmail, setRecipientEmail] = useState(formData.recipientEmail || '');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isScheduled, setIsScheduled] = useState(false);
   const [showScheduling, setShowScheduling] = useState(false);
