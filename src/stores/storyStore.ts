@@ -65,13 +65,13 @@ export const useStoryStore = create<StoryState>()(
     {
       name: 'story-storage',
       partialize: (state) => ({
-        // Only persist form data and UI state, NOT the large emails with images
         currentStep: state.currentStep,
         formData: state.formData,
+        emails: state.emails,
         storyId: state.storyId,
         isUnlocked: state.isUnlocked,
         isPaid: state.isPaid,
-        // Exclude: emails, isGenerating
+        // Exclude: isGenerating
       }),
     }
   )

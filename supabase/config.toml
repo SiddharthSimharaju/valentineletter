@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.gmail-callback]
 verify_jwt = false
+
+[functions.gmail-store-token]
+verify_jwt = false

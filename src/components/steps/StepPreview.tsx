@@ -169,6 +169,11 @@ const StepPreview = () => {
       return;
     }
 
+    if (!story) {
+      toast.error('Letter not found. Please go back and regenerate your letter.');
+      return;
+    }
+
     setIsSendingEmail(true);
     
     try {
