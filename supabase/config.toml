@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.gmail-disconnect]
 verify_jwt = false
+
+[functions.gmail-callback]
+verify_jwt = false

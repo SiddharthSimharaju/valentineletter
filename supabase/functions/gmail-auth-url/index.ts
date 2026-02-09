@@ -52,12 +52,12 @@ serve(async (req) => {
       throw new Error("GMAIL_CLIENT_ID not configured");
     }
 
-    const { redirectUri } = await req.json();
+    const { returnUrl } = await req.json();
 
-    // Validate redirect URI
-    if (typeof redirectUri !== "string" || redirectUri.length > 500) {
+    // Validate returnUrl
+    if (typeof returnUrl !== "string" || returnUrl.length > 500) {
       return new Response(
-        JSON.stringify({ error: "Invalid redirect URI" }),
+        JSON.stringify({ error: "Invalid return URL" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -68,27 +68,30 @@ serve(async (req) => {
       "lovableproject.com",
       "lettersonvalentines.com",
       "localhost",
+      "lovable.app",
     ];
     
     try {
-      const redirectUrl = new URL(redirectUri);
+      const parsedUrl = new URL(returnUrl);
       const isAllowedDomain = allowedRedirectDomains.some(domain => 
-        redirectUrl.hostname === domain || redirectUrl.hostname.endsWith(`.${domain}`)
+        parsedUrl.hostname === domain || parsedUrl.hostname.endsWith(`.${domain}`)
       );
       
       if (!isAllowedDomain) {
-        console.warn("Rejected redirect to:", redirectUri);
+        console.warn("Rejected return URL:", returnUrl);
         return new Response(
-          JSON.stringify({ error: "Invalid redirect domain" }),
+          JSON.stringify({ error: "Invalid return URL domain" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
     } catch {
       return new Response(
-        JSON.stringify({ error: "Invalid redirect URI format" }),
+        JSON.stringify({ error: "Invalid return URL format" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const fixedRedirectUri = `https://lrzyznsxeidnzcthknwc.supabase.co/functions/v1/gmail-callback`;
     
     const scopes = [
       "https://www.googleapis.com/auth/gmail.send",
@@ -97,13 +100,14 @@ serve(async (req) => {
 
     const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
     authUrl.searchParams.set("client_id", clientId);
-    authUrl.searchParams.set("redirect_uri", redirectUri);
+    authUrl.searchParams.set("redirect_uri", fixedRedirectUri);
     authUrl.searchParams.set("response_type", "code");
     authUrl.searchParams.set("scope", scopes.join(" "));
     authUrl.searchParams.set("access_type", "offline");
     authUrl.searchParams.set("prompt", "consent");
+    authUrl.searchParams.set("state", encodeURIComponent(returnUrl));
 
-    console.log("Generated Gmail auth URL for redirect:", redirectUri);
+    console.log("Generated Gmail auth URL with fixed redirect, returnUrl:", returnUrl);
 
     return new Response(
       JSON.stringify({ authUrl: authUrl.toString() }),

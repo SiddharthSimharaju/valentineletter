@@ -47,50 +47,33 @@ export function useGmailAuth() {
     checkConnection();
   }, [checkConnection]);
 
-  // Handle OAuth callback
+  // Handle gmail_connected callback param
   useEffect(() => {
-    const handleCallback = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
-      
-      if (code && !connection.isConnected) {
-        try {
-          const redirectUri = `${window.location.origin}${window.location.pathname}`;
-          
-          const { data, error } = await supabase.functions.invoke('gmail-exchange-token', {
-            body: { code, redirectUri }
-          });
-
-          if (error) throw error;
-
-          if (data?.email) {
-            setConnection({
-              isConnected: true,
-              email: data.email,
-              isLoading: false,
-            });
-            
-            // Clean up URL
-            window.history.replaceState({}, '', window.location.pathname);
-          }
-        } catch (err) {
-          console.error('Gmail auth callback error:', err);
-          // Clean up URL even on error
-          window.history.replaceState({}, '', window.location.pathname);
-        }
-      }
-    };
-
-    handleCallback();
-  }, [connection.isConnected]);
+    const urlParams = new URLSearchParams(window.location.search);
+    const gmailConnected = urlParams.get('gmail_connected');
+    const gmailError = urlParams.get('gmail_error');
+    
+    if (gmailConnected) {
+      setConnection({
+        isConnected: true,
+        email: gmailConnected,
+        isLoading: false,
+      });
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (gmailError) {
+      console.error('Gmail auth error:', gmailError);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   // Start OAuth flow
   const connectGmail = async () => {
     try {
-      const redirectUri = `${window.location.origin}${window.location.pathname}`;
+      const returnUrl = `${window.location.origin}${window.location.pathname}`;
       
       const { data, error } = await supabase.functions.invoke('gmail-auth-url', {
-        body: { redirectUri }
+        body: { returnUrl }
       });
 
       if (error) throw error;
