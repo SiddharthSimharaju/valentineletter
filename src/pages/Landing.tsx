@@ -2,6 +2,7 @@ import { Heart, Mail, Shield, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate, Link } from 'react-router-dom';
 import lettersBg from '@/assets/letters-bg-optimized.jpg';
+import cupidLogo from '@/assets/cupid-logo.png';
 import SampleLetterModal from '@/components/SampleLetterModal';
 
 const Landing = () => {
@@ -44,8 +45,9 @@ const Landing = () => {
 
         <div className="relative z-10 max-w-xl mx-auto text-center">
           {/* Small heart icon */}
-          <div className="animate-fade-up mb-8">
-            <Heart className="w-8 h-8 mx-auto text-primary/60" strokeWidth={1.5} />
+          <div className="animate-fade-up mb-6 flex flex-col items-center gap-2">
+            <img src={cupidLogo} alt="Valentine Letters cupid logo" className="w-16 h-16 object-contain" />
+            <span className="font-display text-lg font-medium text-primary/80 tracking-wide">Valentine Letters</span>
           </div>
 
           {/* Headline */}
