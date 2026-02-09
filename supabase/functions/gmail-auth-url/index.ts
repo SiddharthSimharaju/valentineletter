@@ -66,6 +66,7 @@ serve(async (req) => {
     const allowedRedirectDomains = [
       "valentineletter.lovable.app",
       "lovableproject.com",
+      "lettersonvalentines.com",
       "localhost",
     ];
     
