@@ -6,15 +6,10 @@ import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
 
 const STAGES = [
-  { label: 'Preparing your story...', duration: 1500 },
-  { label: 'Drafting Day 1...', duration: 1500 },
-  { label: 'Drafting Day 2...', duration: 1500 },
-  { label: 'Drafting Day 3...', duration: 1500 },
-  { label: 'Drafting Day 4...', duration: 1500 },
-  { label: 'Drafting Day 5...', duration: 1500 },
-  { label: 'Drafting Day 6...', duration: 1500 },
-  { label: 'Drafting Day 7...', duration: 1500 },
-  { label: 'Finishing touches...', duration: 2500 },
+  { label: 'Preparing your story...', duration: 2000 },
+  { label: 'Gathering your memories...', duration: 3000 },
+  { label: 'Weaving your words together...', duration: 4000 },
+  { label: 'Adding the finishing touches...', duration: 3000 },
 ];
 
 const StepGenerating = () => {
@@ -36,7 +31,7 @@ const StepGenerating = () => {
         return;
       }
       
-      currentProgress += 0.5;
+      currentProgress += 0.4;
       if (currentProgress <= targetProgress) {
         setProgress(currentProgress);
         
@@ -65,7 +60,7 @@ const StepGenerating = () => {
         });
 
         if (response.error) {
-          throw new Error(response.error.message || 'Failed to generate emails');
+          throw new Error(response.error.message || 'Failed to generate story');
         }
 
         const { emails } = response.data;
@@ -79,7 +74,7 @@ const StepGenerating = () => {
           nextStep();
         }, 500);
       } catch (error) {
-        console.error('Error generating emails:', error);
+        console.error('Error generating story:', error);
         toast.error('Something went wrong. Please try again.');
         setIsGenerating(false);
       }
@@ -101,7 +96,7 @@ const StepGenerating = () => {
 
       {/* Message */}
       <p className="text-lg text-muted-foreground max-w-xs mb-2">
-        Turning what you shared into a 7-day story.
+        Crafting your Valentine's love letter.
       </p>
       
       {/* Stage label */}

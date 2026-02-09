@@ -15,17 +15,17 @@ const Landing = () => {
     },
     {
       step: 2,
-      title: "We Craft Letters",
+      title: "We Craft Your Letter",
       emoji: "✨"
     },
     {
       step: 3,
-      title: "Review & Approve",
+      title: "Review & Edit",
       emoji: "👀"
     },
     {
       step: 4,
-      title: "Magic Happens",
+      title: "Send on Valentine's",
       emoji: "💌"
     }
   ];
@@ -50,12 +50,12 @@ const Landing = () => {
 
           {/* Headline */}
           <h1 className="animate-fade-up font-display text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-foreground text-balance leading-tight mb-6">
-            A week of words you've always meant to say.
+            A love letter with everything you've always meant to say.
           </h1>
 
           {/* Subtext */}
           <p className="animate-fade-up-delay text-lg md:text-xl text-muted-foreground max-w-md mx-auto mb-10">
-            Create a 7-day Valentine's story. One thoughtful email a day. Fully personal. Fully yours.
+            Create a heartfelt Valentine's letter. Fully personal. Fully yours. Sent on February 14th.
           </p>
 
           {/* CTA Buttons */}
@@ -65,14 +65,14 @@ const Landing = () => {
               onClick={() => navigate('/create')}
               className="text-base px-8 py-6 h-auto rounded-full shadow-glow hover:shadow-lg transition-all duration-300"
             >
-              Create my 7-day story
+              Create my Valentine's letter
             </Button>
             <SampleLetterModal />
           </div>
 
           {/* Reassurance */}
           <p className="animate-fade-up-delay-3 mt-8 text-sm text-muted-foreground">
-            Takes about 5 minutes. Nothing is sent without approval.
+            Takes about 5 minutes. Nothing is sent without your approval.
           </p>
         </div>
 
@@ -150,9 +150,9 @@ const Landing = () => {
             <div className="flex items-start gap-4 text-left p-4 rounded-lg bg-card border border-border">
               <Lock className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
               <div>
-                <h4 className="font-medium text-foreground mb-1">End-to-End Encryption</h4>
+                <h4 className="font-medium text-foreground mb-1">Secure Connection</h4>
                 <p className="text-sm text-muted-foreground">
-                  Your inputs are encrypted before they ever reach our servers.
+                  Your data is transmitted securely over HTTPS and stored locally in your browser.
                 </p>
               </div>
             </div>
@@ -160,9 +160,9 @@ const Landing = () => {
             <div className="flex items-start gap-4 text-left p-4 rounded-lg bg-card border border-border">
               <Mail className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
               <div>
-                <h4 className="font-medium text-foreground mb-1">No Chat Storage</h4>
+                <h4 className="font-medium text-foreground mb-1">Local Storage Only</h4>
                 <p className="text-sm text-muted-foreground">
-                  We don't store your conversations. Once processed, your raw inputs are deleted.
+                  Your form responses are stored in your browser. Clear your browser data to remove them.
                 </p>
               </div>
             </div>
@@ -190,7 +190,7 @@ const Landing = () => {
             Ready to tell your story?
           </h2>
           <p className="text-muted-foreground mb-8">
-            Valentine's Day is approaching. Start creating your 7-day love letter series today.
+            Valentine's Day is February 14th. Create your love letter today.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button 
@@ -198,7 +198,7 @@ const Landing = () => {
               onClick={() => navigate('/create')}
               className="text-base px-8 py-6 h-auto rounded-full shadow-glow hover:shadow-lg transition-all duration-300"
             >
-              Create my 7-day story
+              Create my Valentine's letter
             </Button>
             <SampleLetterModal />
           </div>

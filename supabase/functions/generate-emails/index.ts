@@ -69,78 +69,50 @@ type GeneratedEmail = {
   imageUrl?: string;
 };
 
-const imagePrompts: Record<number, string> = {
-  1: "Soft cinematic illustration of morning light through curtains onto an empty chair, muted warm tones, intimate quiet domestic scene, no text, atmospheric",
-  2: "Soft cinematic illustration of two coffee cups on a wooden table by a window with soft rain outside, muted nostalgic tones, intimate quiet scene, no text",
-  3: "Soft cinematic illustration of hands gently holding a worn book, soft afternoon light, muted warm palette, intimate contemplative mood, no text",
-  4: "Soft cinematic illustration of an unmade bed with morning light, soft shadows, muted intimate tones, vulnerability and trust, no text",
-  5: "Soft cinematic illustration of two pairs of shoes by a doorway, one neat one messy, muted warm light, quiet domestic intimacy, no text",
-  6: "Soft cinematic illustration of a kitchen counter with two mugs and soft evening light, muted cozy tones, everyday love scene, no text",
-  7: "Soft cinematic illustration of intertwined hands resting on a blanket, soft golden hour light, muted romantic tones, quiet affection, no text",
-};
+const imagePrompt = "Soft cinematic illustration of two hands gently intertwined on a blanket, soft golden hour light filtering through curtains, muted warm romantic tones, quiet affection and intimacy, no text, atmospheric and emotional";
 
 function safeString(v: unknown, fallback = ""): string {
   if (typeof v !== "string") return fallback;
-  // Sanitize: trim and limit length
   return v.trim().slice(0, 2000);
 }
 
-function buildFallbackEmails(formData: FormData): GeneratedEmail[] {
+function buildFallbackStory(formData: FormData): GeneratedEmail[] {
   const recipientName = safeString(formData.recipientName, "there");
   const latelyThinking = safeString(formData.latelyThinking);
   const originStory = safeString(formData.originStory);
-  const earlyImpression = safeString(formData.earlyImpression);
   const admiration = safeString(formData.admiration);
-  const vulnerabilityFeeling = safeString(formData.vulnerabilityFeeling);
-  const growthChange = safeString(formData.growthChange);
-  const everydayChoice = safeString(formData.everydayChoice);
   const valentineHope = safeString(formData.valentineHope);
 
-  const themes = [
-    { day: 1, theme: "Acknowledgement" },
-    { day: 2, theme: "Origin" },
-    { day: 3, theme: "Appreciation" },
-    { day: 4, theme: "Vulnerability" },
-    { day: 5, theme: "Growth" },
-    { day: 6, theme: "Choice" },
-    { day: 7, theme: "Valentine's Day" },
-  ];
+  let body = `Dear ${recipientName},\n\n`;
+  
+  body += `I've been sitting with something for a while now. A feeling I keep meaning to put into words but never quite do. Today feels like the right day to try.\n\n`;
+  
+  if (latelyThinking) {
+    body += `Lately, I've been thinking about ${latelyThinking}. It keeps coming back to me at odd moments, when I'm not expecting it.\n\n`;
+  }
+  
+  if (originStory) {
+    body += `I think about how we started. ${originStory}. Looking back now, that moment feels different than it did at the time. Something ordinary became something else entirely.\n\n`;
+  }
+  
+  if (admiration) {
+    body += `There's something I don't say enough: ${admiration}. It's one of those truths I think about but rarely put into words. Maybe because it feels too important to say casually.\n\n`;
+  }
+  
+  body += `The thing about us is that it's not the big moments that define what we have. It's the quiet ones. The ones no one else sees. The mornings when neither of us wants to get up. The silences that feel more comfortable than conversation.\n\n`;
+  
+  if (valentineHope) {
+    body += `Today, more than anything, I just want you to feel ${valentineHope}. Nothing more complicated than that.\n\n`;
+  }
+  
+  body += `Happy Valentine's Day.\n\nWith all my love`;
 
-  return themes.map((d) => {
-    let body = `Hi ${recipientName},\n\n`;
-    
-    if (d.day === 1 && latelyThinking) {
-      body += `Lately I've been thinking about ${latelyThinking}. I don't know why it keeps coming back to me, but it does.\n\nThis week I wanted to slow down and say some things I don't usually say out loud.`;
-    } else if (d.day === 2) {
-      body += originStory 
-        ? `I keep coming back to how we started. ${originStory}. It feels different now, looking back. Something ordinary became something else entirely.`
-        : `I've been thinking about how things started between us. The small moments that didn't seem important at the time.`;
-      if (earlyImpression) {
-        body += `\n\nEarly on, I noticed ${earlyImpression}. I still notice it.`;
-      }
-    } else if (d.day === 3 && admiration) {
-      body += `There's something I don't say enough: ${admiration}. It's one of those things I think about but rarely put into words.`;
-    } else if (d.day === 4 && vulnerabilityFeeling) {
-      body += `Being with you has made me feel more ${vulnerabilityFeeling}. That's not something I expected. But it's true.`;
-    } else if (d.day === 5 && growthChange) {
-      body += `I've been thinking about how we've changed. ${growthChange}. Not dramatic stuff. Just the quiet kind of growing.`;
-    } else if (d.day === 6 && everydayChoice) {
-      body += `You know what makes me choose you on ordinary days? ${everydayChoice}. Not the special moments. Just the regular ones.`;
-    } else if (d.day === 7 && valentineHope) {
-      body += `Today I just want you to feel ${valentineHope}. Nothing more complicated than that.`;
-    } else {
-      body += `I've been sitting with some thoughts about you and wanted to share them, even if they're not perfect.`;
-    }
-
-    body += `\n\n`;
-
-    return {
-      day: d.day,
-      theme: d.theme,
-      subject: `${d.theme}: a note for today`,
-      body,
-    };
-  });
+  return [{
+    day: 1,
+    theme: "Valentine's Day",
+    subject: "A letter for you",
+    body,
+  }];
 }
 
 function extractJsonArrayFromText(text: string): string {
@@ -149,35 +121,34 @@ function extractJsonArrayFromText(text: string): string {
   return match[0];
 }
 
-function validateEmails(emails: unknown): GeneratedEmail[] {
-  if (!Array.isArray(emails) || emails.length !== 7) {
-    throw new Error("Invalid email structure");
+function validateStory(emails: unknown): GeneratedEmail[] {
+  if (!Array.isArray(emails) || emails.length !== 1) {
+    throw new Error("Invalid story structure - expected exactly 1 email");
   }
 
-  for (const email of emails) {
-    if (
-      !email ||
-      typeof email !== "object" ||
-      typeof (email as any).day !== "number" ||
-      typeof (email as any).theme !== "string" ||
-      typeof (email as any).subject !== "string" ||
-      typeof (email as any).body !== "string"
-    ) {
-      throw new Error("Invalid email structure");
-    }
+  const email = emails[0];
+  if (
+    !email ||
+    typeof email !== "object" ||
+    typeof (email as any).day !== "number" ||
+    typeof (email as any).theme !== "string" ||
+    typeof (email as any).subject !== "string" ||
+    typeof (email as any).body !== "string"
+  ) {
+    throw new Error("Invalid story structure");
   }
 
   return emails as GeneratedEmail[];
 }
 
-async function generateEmailsWithAi(formData: FormData, apiKey: string): Promise<GeneratedEmail[]> {
+async function generateStoryWithAi(formData: FormData, apiKey: string): Promise<GeneratedEmail[]> {
   const recipientName = safeString(formData.recipientName, "my partner");
   
-  const systemPrompt = `You are writing a 7-day Valentine's Week email sequence. Write emails as if they are private letters, not greeting cards. Each email should feel like an inner thought finally put into words.
+  const systemPrompt = `You are writing ONE Valentine's Day love letter. Write it as if it's a private letter, not a greeting card. It should feel like an inner thought finally put into words.
 
 CORE PHILOSOPHY:
 - Write as if the reader is the only person in the world reading this
-- Each email is an inner thought finally put into words
+- This letter is an inner thought finally put into words
 - The tone should feel intimate, reflective, and emotionally honest
 - Write with depth. Write with patience.
 
@@ -186,7 +157,7 @@ WRITING STYLE:
 - Reference time, pauses, everyday moments
 - Allow silence and restraint in your writing
 - Let sentences breathe
-- Prefer short paragraphs (2-3 sentences max)
+- Prefer medium-sized paragraphs (3-5 sentences)
 - Use contractions naturally (don't, can't, I'm, you're)
 - Incomplete sentences are okay. Like this.
 
@@ -199,14 +170,19 @@ ABSOLUTELY FORBIDDEN - NEVER USE THESE:
 - Dramatic sign-offs
 - Any flowery or greeting-card language
 
-EACH EMAIL MUST INCLUDE:
-- One inner realization (a quiet discovery about self or the relationship)
-- One emotional contrast (quiet vs loud, then vs now, said vs unsaid, visible vs hidden)
-- One forward-looking line that gently leads to the next day
+THE LETTER MUST INCLUDE:
+- At least one inner realization (a quiet discovery about self or the relationship)
+- At least one emotional contrast (quiet vs loud, then vs now, said vs unsaid, visible vs hidden)
+- A genuine, grounded expression of love
 
-LENGTH: 250-300 words. Long enough to feel substantial, but not verbose. Count your words.
+STRUCTURE:
+- Opening: A quiet, reflective beginning that draws the reader in
+- Body: Weave together the personal context provided, moving through time (past to present)
+- Closing: A forward-looking hope or simple declaration, landing softly
 
-CRITICAL TEST: If an email could be sent to anyone without changing a sentence, it fails. Rewrite it with specifics from the provided context.
+LENGTH: 1000-1500 words. Long enough to feel substantial and complete. Count your words carefully.
+
+CRITICAL TEST: If this letter could be sent to anyone without changing a sentence, it fails. Rewrite it with specifics from the provided context.
 
 TONE: ${safeString(formData.tone, "warm")}
 ${formData.tone === "simple" ? "Super straightforward. Say what you mean, nothing extra." : ""}
@@ -216,69 +192,65 @@ ${formData.tone === "deep" ? "Reflective, but sounds like thinking out loud, not
 
 ${formData.guardrails ? `NEVER MENTION: ${safeString(formData.guardrails)}` : ""}`;
 
-  const userPrompt = `Create 7 emails for ${recipientName}.
+  const userPrompt = `Create ONE complete Valentine's Day love letter for ${recipientName}.
 
-PERSONAL CONTEXT FOR EACH DAY:
+PERSONAL CONTEXT TO WEAVE INTO THE LETTER:
 
-Day 1 - Acknowledgement (what's been on their mind lately):
-"${safeString(formData.latelyThinking, "Not provided - use a gentle opening about noticing small things")}"
+What's been on their mind lately:
+"${safeString(formData.latelyThinking, "Not provided - create a gentle opening about noticing small things")}"
 
-Day 2 - Origin (how they met + early impressions):
-How they met: "${safeString(formData.originStory, "Not provided - be vague about the meeting")}"
-What was noticed early: "${safeString(formData.earlyImpression, "Not provided - focus on the origin story")}"
+How they met (origin story):
+"${safeString(formData.originStory, "Not provided - be vague about the meeting")}"
 
-Day 3 - Appreciation (what they admire but rarely say):
+What was noticed early on:
+"${safeString(formData.earlyImpression, "Not provided - focus on general early impressions")}"
+
+What they admire but rarely say:
 "${safeString(formData.admiration, "Not provided - focus on quiet observation")}"
 
-Day 4 - Vulnerability (how being with them has changed the sender):
+How being with them has changed the sender:
 "${safeString(formData.vulnerabilityFeeling, "Not provided - focus on inner emotional change")}"
 
-Day 5 - Growth (how the relationship has changed over time):
+How the relationship has changed over time:
 "${safeString(formData.growthChange, "Not provided - focus on steadiness and evolution")}"
 
-Day 6 - Choice (what makes them choose this person on ordinary days):
+What makes them choose this person on ordinary days:
 "${safeString(formData.everydayChoice, "Not provided - focus on everyday presence")}"
 
-Day 7 - Valentine's Day (what the sender hopes they feel today):
+What the sender hopes they feel today:
 "${safeString(formData.valentineHope, "Not provided - keep it simple and grounded")}"
 
-THE 7-DAY EMOTIONAL ARC:
+EMOTIONAL ARC OF THE LETTER:
+1. Opening: Start with a quiet realization or acknowledgment (use "lately thinking" context)
+2. Memory: Ground in a specific memory, the beginning (use origin story and early impression)
+3. Appreciation: Something genuinely admired (use admiration context)
+4. Vulnerability: Honest emotional disclosure (use vulnerability context)
+5. Growth: How things have evolved (use growth context)
+6. Choice: The everyday reasons (use everyday choice context)
+7. Hope: What you wish for them today (use valentine hope context)
+8. Closing: A simple, grounded expression of love
 
-Day 1 - Acknowledgement: A quiet realization about the present. Use the "lately thinking" context. Set the intention for the week. Include a line that leads to Day 2.
-
-Day 2 - Origin: Ground in memory. Use the origin story and early impression. Contrast: then vs now. Include a line that leads to Day 3.
-
-Day 3 - Appreciation: Being truly seen. Use the admiration context. One specific trait or habit, why it matters quietly. Include a line that leads to Day 4.
-
-Day 4 - Vulnerability: Emotional honesty without pressure. Use the vulnerability context. Contrast: what's visible vs what's hidden. Include a line that leads to Day 5.
-
-Day 5 - Growth: Quiet evolution. Use the growth context. Contrast: who you were vs who you're becoming. Include a line that leads to Day 6.
-
-Day 6 - Choice: Intentionality in ordinary moments. Use the everyday choice context. Contrast: loud declarations vs quiet presence. Include a line that leads to Day 7.
-
-Day 7 - Valentine's Day: Emotional landing. Use the valentine hope context. Simplicity, presence. Let it land softly. No forward line needed—this is the ending.
-
-OUTPUT FORMAT - Return a JSON array with exactly 7 objects:
+OUTPUT FORMAT - Return a JSON array with exactly 1 object:
 [
   {
     "day": 1,
-    "theme": "Acknowledgement",
+    "theme": "Valentine's Day",
     "subject": "Short, intimate subject line (not generic)",
-    "body": "Email body here. Use \\n\\n for paragraph breaks. 250-300 words. ABSOLUTELY NO em dashes (—) or double hyphens (--)."
-  },
-  ...
+    "body": "Complete letter here. Use \\n\\n for paragraph breaks. 1000-1500 words. ABSOLUTELY NO em dashes (—) or double hyphens (--)."
+  }
 ]
 
 FINAL CHECKLIST BEFORE RESPONDING:
-1. Did you count words? Each email MUST be 250-300 words.
+1. Did you count words? The letter MUST be 1000-1500 words.
 2. Did you remove ALL em dashes (—) and double hyphens (--)? Replace with commas or periods.
-3. Does each email have an inner realization, emotional contrast, and forward-looking line?
+3. Does the letter have inner realizations, emotional contrasts, and a forward-looking hope?
 4. Did you avoid ALL generic phrases like "means so much", "special bond", "grateful for"?
-5. Does each email feel like it could ONLY be written for this specific person?
+5. Does this letter feel like it could ONLY be written for this specific person?
+6. Did you weave together ALL the personal context provided into a cohesive narrative?
 
 If any check fails, rewrite before responding.`;
 
-  console.log("Calling AI gateway (emails only)...");
+  console.log("Calling AI gateway for Valentine's story...");
 
   const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
@@ -287,7 +259,7 @@ If any check fails, rewrite before responding.`;
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash-lite",
+      model: "google/gemini-2.5-flash",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
@@ -310,45 +282,39 @@ If any check fails, rewrite before responding.`;
 
   const json = extractJsonArrayFromText(content ?? "");
   const parsed = JSON.parse(json);
-  const emails = validateEmails(parsed);
+  const emails = validateStory(parsed);
 
-  // Generate images for each email
-  console.log("Generating images for emails...");
-  const emailsWithImages = await Promise.all(
-    emails.map(async (email) => {
-      try {
-        const imagePrompt = imagePrompts[email.day] || imagePrompts[1];
-        const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash-image",
-            messages: [{ role: "user", content: imagePrompt }],
-            modalities: ["image", "text"],
-          }),
-        });
+  // Generate image for the story
+  console.log("Generating image for the story...");
+  try {
+    const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-image",
+        messages: [{ role: "user", content: imagePrompt }],
+        modalities: ["image", "text"],
+      }),
+    });
 
-        if (imageResponse.ok) {
-          const imageData = await imageResponse.json();
-          const imageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-          if (imageUrl) {
-            console.log(`Generated image for day ${email.day}`);
-            return { ...email, imageUrl };
-          }
-        }
-        console.warn(`Failed to generate image for day ${email.day}`);
-        return email;
-      } catch (err) {
-        console.warn(`Image generation error for day ${email.day}:`, err);
-        return email;
+    if (imageResponse.ok) {
+      const imageData = await imageResponse.json();
+      const imageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      if (imageUrl) {
+        console.log("Generated image for story");
+        emails[0].imageUrl = imageUrl;
       }
-    })
-  );
+    } else {
+      console.warn("Failed to generate image for story");
+    }
+  } catch (err) {
+    console.warn("Image generation error:", err);
+  }
 
-  return emailsWithImages;
+  return emails;
 }
 
 serve(async (req) => {
@@ -379,7 +345,7 @@ serve(async (req) => {
       );
     }
 
-    console.log("Generating emails for:", formData?.recipientName);
+    console.log("Generating Valentine's story for:", formData?.recipientName);
     console.log("Tone:", formData?.tone);
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY") ?? "";
@@ -388,10 +354,10 @@ serve(async (req) => {
 
     if (apiKey) {
       try {
-        emails = await generateEmailsWithAi(formData, apiKey);
+        emails = await generateStoryWithAi(formData, apiKey);
       } catch (e) {
         const status = (e as any)?.status;
-        console.error("AI email generation failed; falling back.", { status });
+        console.error("AI story generation failed; falling back.", { status });
         emails = null;
       }
     } else {
@@ -399,7 +365,7 @@ serve(async (req) => {
     }
 
     if (!emails) {
-      emails = buildFallbackEmails(formData);
+      emails = buildFallbackStory(formData);
     }
 
     return new Response(JSON.stringify({ emails }), {
