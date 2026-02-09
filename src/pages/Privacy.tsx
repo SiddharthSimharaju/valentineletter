@@ -88,7 +88,7 @@ const Privacy = () => {
 
           <section className="space-y-3">
             <h2 className="text-xl font-display font-medium text-foreground">10. Contact Us</h2>
-            <p>If you have any questions about this Privacy Policy, please reach out to us at <a href="mailto:hello@lettersonvalentines.com" className="text-primary hover:underline">hello@lettersonvalentines.com</a>.</p>
+            <p>If you have any questions about this Privacy Policy, please reach out to us at <a href="tel:+917706888651" className="text-primary hover:underline">+91-7706888651</a>.</p>
           </section>
         </div>
       </div>
