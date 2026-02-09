@@ -76,7 +76,7 @@ const StepPreview = () => {
     try {
       // Create order
       const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
-        body: { amount: 149, currency: 'INR' }
+        body: { amount: 99, currency: 'INR' }
       });
 
       if (error || !data?.orderId) {
@@ -417,7 +417,7 @@ const StepPreview = () => {
               <p className="font-medium text-foreground mb-1">
                 {story.subject}
               </p>
-              <p className="text-sm text-muted-foreground line-clamp-3">
+              <p className="text-sm text-muted-foreground line-clamp-4">
                 {story.body.substring(0, 200)}...
               </p>
             </div>
@@ -463,7 +463,7 @@ const StepPreview = () => {
               ) : (
                 <>
                   <Lock className="w-4 h-4 mr-2" />
-                  Unlock & Send for ₹149
+                  Unlock & Send for ₹99
                 </>
               )}
             </Button>
