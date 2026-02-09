@@ -1,4 +1,4 @@
-import { Lock, Eye, Pencil, RotateCcw, Loader2, Calendar, Clock, Send, CheckCircle2, Mail } from 'lucide-react';
+import { Lock, Eye, Pencil, RotateCcw, Loader2, Calendar, Send, CheckCircle2, Mail, Heart } from 'lucide-react';
 import { useState } from 'react';
 import { useStoryStore } from '@/stores/storyStore';
 import { Button } from '@/components/ui/button';
@@ -46,49 +46,28 @@ interface RazorpayResponse {
   razorpay_signature: string;
 }
 
-const DAY_THEMES = [
-  'Recognition',
-  'How it started',
-  'Admiration',
-  'Vulnerability',
-  'Growth',
-  'Choosing you',
-  "Valentine's Day",
-];
-
-// Generate dates starting from Feb 8 (7 days before Valentine's)
-const getScheduleDates = () => {
-  const dates = [];
-  const startDate = new Date(2026, 1, 8); // Feb 8, 2026
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(startDate);
-    date.setDate(startDate.getDate() + i);
-    dates.push(date);
-  }
-  return dates;
-};
+// Valentine's Day
+const VALENTINES_DATE = new Date(2025, 1, 14); // Feb 14, 2025
 
 const formatDate = (date: Date) => {
   return date.toLocaleDateString('en-US', { 
-    weekday: 'short', 
-    month: 'short', 
+    weekday: 'long', 
+    month: 'long', 
     day: 'numeric' 
   });
 };
 
 const StepPreview = () => {
   const { emails, isUnlocked, formData, setEmails, setIsUnlocked, setIsPaid, reset } = useStoryStore();
-  const [selectedEmailIndex, setSelectedEmailIndex] = useState<number | null>(null);
-  // Fixed to 9pm IST daily - users cannot change this
-  const scheduleTimes = Array(7).fill('21:00');
+  const [isViewingEmail, setIsViewingEmail] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isScheduled, setIsScheduled] = useState(false);
   const [showScheduling, setShowScheduling] = useState(false);
-  const [isSchedulingEmails, setIsSchedulingEmails] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   const gmail = useGmailAuth();
-  const scheduleDates = getScheduleDates();
+  const story = emails[0]; // Single story
 
   const handleUnlock = async () => {
     if (isProcessing) return;
@@ -112,7 +91,7 @@ const StepPreview = () => {
         amount: amount,
         currency: currency,
         name: 'What I Want to Tell You',
-        description: '7-Day Valentine\'s Email Sequence',
+        description: 'Valentine\'s Day Love Letter',
         order_id: orderId,
         handler: async (response: RazorpayResponse) => {
           try {
@@ -129,11 +108,11 @@ const StepPreview = () => {
               throw new Error('Payment verification failed');
             }
 
-            // Unlock emails
+            // Unlock letter
             setIsUnlocked(true);
             setIsPaid(true);
             setShowScheduling(true);
-            toast.success('Payment successful! All emails unlocked.');
+            toast.success('Payment successful! Your letter is unlocked.');
           } catch (err) {
             console.error('Payment verification error:', err);
             toast.error('Payment verification failed. Please contact support.');
@@ -166,7 +145,7 @@ const StepPreview = () => {
     setIsUnlocked(true);
     setIsPaid(true);
     setShowScheduling(true);
-    toast.success('Test: Payment simulated! Emails unlocked.');
+    toast.success('Test: Payment simulated! Letter unlocked.');
   };
 
   const handleRestart = () => {
@@ -175,22 +154,11 @@ const StepPreview = () => {
     setIsScheduled(false);
   };
 
-  const handleEmailClick = (index: number) => {
-    // Day 1 (index 0) is always viewable, others only if unlocked
-    if (index === 0 || isUnlocked) {
-      setSelectedEmailIndex(index);
-    }
-  };
-
   const handleSaveEmail = (updatedEmail: GeneratedEmail) => {
-    if (selectedEmailIndex === null) return;
-    
-    const newEmails = [...emails];
-    newEmails[selectedEmailIndex] = updatedEmail;
-    setEmails(newEmails);
+    setEmails([updatedEmail]);
   };
 
-  const handleScheduleEmails = async () => {
+  const handleSendEmail = async () => {
     if (!recipientEmail.trim()) {
       toast.error('Please enter recipient email address');
       return;
@@ -201,16 +169,21 @@ const StepPreview = () => {
       return;
     }
 
-    setIsSchedulingEmails(true);
+    setIsSendingEmail(true);
     
     try {
-      // Send first email immediately as a test
-      const firstEmail = emails[0];
+      // Build email body with image if available
+      let emailBody = '';
+      if (story.imageUrl) {
+        emailBody += `<img src="${story.imageUrl}" alt="Valentine's illustration" style="max-width: 100%; height: auto; border-radius: 8px; margin-bottom: 24px;" /><br><br>`;
+      }
+      emailBody += story.body.replace(/\n/g, '<br>');
+
       const { data, error } = await supabase.functions.invoke('send-gmail-email', {
         body: {
           to: recipientEmail,
-          subject: firstEmail.subject,
-          body: firstEmail.body.replace(/\n/g, '<br>'),
+          subject: story.subject,
+          body: emailBody,
           senderEmail: gmail.email,
         }
       });
@@ -218,17 +191,14 @@ const StepPreview = () => {
       if (error) throw error;
 
       setIsScheduled(true);
-      toast.success(`First email sent! The rest will be scheduled for ${formData.recipientName}.`);
+      toast.success(`Your Valentine's letter has been sent to ${formData.recipientName}!`);
     } catch (err) {
       console.error('Failed to send email:', err);
       toast.error('Failed to send email. Please try again.');
     } finally {
-      setIsSchedulingEmails(false);
+      setIsSendingEmail(false);
     }
   };
-
-  const isEmailViewable = (index: number) => index === 0 || isUnlocked;
-  const isEmailEditable = (index: number) => isUnlocked;
 
   // Show scheduling UI after payment
   if (isUnlocked && showScheduling && !isScheduled) {
@@ -239,17 +209,17 @@ const StepPreview = () => {
             <CheckCircle2 className="w-8 h-8 text-green-600" />
           </div>
           <h2 className="font-display text-2xl md:text-3xl font-medium text-foreground mb-2">
-            All emails unlocked!
+            Your letter is ready!
           </h2>
           <p className="text-muted-foreground">
-            Now let's schedule when {formData.recipientName} receives them
+            Send it to {formData.recipientName} on Valentine's Day
           </p>
         </div>
 
         {/* Gmail Connection */}
         <div className="mb-6 p-4 rounded-lg border border-border bg-card">
           <Label className="text-sm font-medium mb-3 block">
-            Connect your Gmail to send emails
+            Connect your Gmail to send the letter
           </Label>
           {gmail.isLoading ? (
             <div className="flex items-center gap-2 text-muted-foreground">
@@ -298,57 +268,47 @@ const StepPreview = () => {
           />
         </div>
 
-        {/* Schedule grid */}
-        <div className="space-y-3 mb-8">
-          {emails.map((email, index) => (
-            <div
-              key={index}
-              className="p-4 rounded-lg border border-border bg-card"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <div 
-                  className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
-                  onClick={() => setSelectedEmailIndex(index)}
-                >
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-rose-subtle flex items-center justify-center">
-                    <span className="text-sm font-medium text-primary">{index + 1}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground text-sm">
-                      Day {index + 1}. {DAY_THEMES[index]}
-                    </p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                      <Calendar className="w-3 h-3" />
-                      <span>{formatDate(scheduleDates[index])}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setSelectedEmailIndex(index)}
-                    className="p-2 rounded-md hover:bg-muted transition-colors"
-                    title="Edit email"
-                  >
-                    <Pencil className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <Clock className="w-4 h-4" />
-                    <span>9:00 PM</span>
-                  </div>
+        {/* Letter preview card */}
+        <div
+          className="p-4 rounded-lg border border-border bg-card mb-6 cursor-pointer hover:border-primary/40 transition-colors"
+          onClick={() => setIsViewingEmail(true)}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-rose-subtle flex items-center justify-center">
+                <Heart className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-foreground">
+                  Your Valentine's Letter
+                </p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                  <Calendar className="w-3 h-3" />
+                  <span>{formatDate(VALENTINES_DATE)}</span>
                 </div>
               </div>
             </div>
-          ))}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsViewingEmail(true);
+              }}
+              className="p-2 rounded-md hover:bg-muted transition-colors"
+              title="Edit letter"
+            >
+              <Pencil className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </div>
         </div>
 
-        {/* Schedule button */}
+        {/* Send button */}
         <Button 
-          onClick={handleScheduleEmails}
+          onClick={handleSendEmail}
           size="lg"
           className="w-full h-12 text-base"
-          disabled={!gmail.isConnected || isSchedulingEmails}
+          disabled={!gmail.isConnected || isSendingEmail}
         >
-          {isSchedulingEmails ? (
+          {isSendingEmail ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               Sending...
@@ -356,13 +316,13 @@ const StepPreview = () => {
           ) : (
             <>
               <Send className="w-4 h-4 mr-2" />
-              {gmail.isConnected ? 'Send first email & schedule rest' : 'Connect Gmail first'}
+              {gmail.isConnected ? 'Send Valentine\'s Letter' : 'Connect Gmail first'}
             </>
           )}
         </Button>
 
         <p className="text-sm text-muted-foreground text-center mt-3">
-          You can click on any email above to edit before scheduling
+          Click on the letter above to preview or edit before sending
         </p>
 
         {/* Back to preview */}
@@ -378,11 +338,9 @@ const StepPreview = () => {
 
         {/* Email View/Edit Modal */}
         <EmailViewModal
-          isOpen={selectedEmailIndex !== null}
-          onClose={() => setSelectedEmailIndex(null)}
-          email={selectedEmailIndex !== null ? emails[selectedEmailIndex] : null}
-          dayIndex={selectedEmailIndex ?? 0}
-          dayTheme={DAY_THEMES[selectedEmailIndex ?? 0]}
+          isOpen={isViewingEmail}
+          onClose={() => setIsViewingEmail(false)}
+          email={story}
           isEditable={true}
           onSave={handleSaveEmail}
         />
@@ -390,7 +348,7 @@ const StepPreview = () => {
     );
   }
 
-  // Show success state after scheduling
+  // Show success state after sending
   if (isScheduled) {
     return (
       <div className="animate-fade-up text-center py-8">
@@ -398,17 +356,17 @@ const StepPreview = () => {
           <CheckCircle2 className="w-10 h-10 text-green-600" />
         </div>
         <h2 className="font-display text-2xl md:text-3xl font-medium text-foreground mb-2">
-          You're all set!
+          Letter sent!
         </h2>
         <p className="text-muted-foreground mb-6">
-          7 emails scheduled for {formData.recipientName}
+          Your Valentine's letter is on its way to {formData.recipientName}
         </p>
         
         <div className="bg-card border border-border rounded-lg p-4 mb-6 text-left">
-          <p className="text-sm text-muted-foreground mb-3">Emails will be sent to:</p>
+          <p className="text-sm text-muted-foreground mb-3">Sent to:</p>
           <p className="font-medium">{recipientEmail}</p>
-          <p className="text-sm text-muted-foreground mt-3">Starting:</p>
-          <p className="font-medium">{formatDate(scheduleDates[0])} at {scheduleTimes[0]}</p>
+          <p className="text-sm text-muted-foreground mt-3">Date:</p>
+          <p className="font-medium">{formatDate(new Date())}</p>
         </div>
 
         <Button 
@@ -417,7 +375,7 @@ const StepPreview = () => {
           className="text-muted-foreground"
         >
           <RotateCcw className="w-4 h-4 mr-2" />
-          Create another story
+          Create another letter
         </Button>
       </div>
     );
@@ -427,169 +385,127 @@ const StepPreview = () => {
     <div className="animate-fade-up">
       <div className="text-center mb-8">
         <h2 className="font-display text-2xl md:text-3xl font-medium text-foreground mb-2">
-          Your week, at a glance
+          Your Valentine's Letter
         </h2>
         <p className="text-muted-foreground">
-          7 emails for {formData.recipientName}
+          A love letter for {formData.recipientName}
         </p>
       </div>
 
-      {/* Email cards */}
-      <div className="space-y-3 mb-8">
-        {emails.length > 0 ? (
-          emails.map((email, index) => (
-            <div
-              key={index}
-              onClick={() => handleEmailClick(index)}
-              className={`relative p-4 rounded-lg border transition-all ${
-                isEmailViewable(index)
-                  ? 'bg-card border-border cursor-pointer hover:border-primary/40 hover:shadow-sm' 
-                  : 'bg-muted/50 border-border cursor-not-allowed'
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-rose-subtle flex items-center justify-center">
-                  <span className="text-sm font-medium text-primary">{index + 1}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-foreground">
-                    Day {index + 1}. {DAY_THEMES[index]}
-                  </p>
-                  {isEmailViewable(index) ? (
-                    <p className="text-sm text-muted-foreground truncate mt-1">
-                      {email.subject}
-                    </p>
-                  ) : (
-                    <div className="flex items-center gap-2 mt-1">
-                      <Lock className="w-3 h-3 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Locked</span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex-shrink-0">
-                  {isEmailEditable(index) ? (
-                    <Pencil className="w-4 h-4 text-muted-foreground" />
-                  ) : index === 0 ? (
-                    <Eye className="w-4 h-4 text-muted-foreground" />
-                  ) : (
-                    <Lock className="w-4 h-4 text-muted-foreground" />
-                  )}
-                </div>
-              </div>
+      {/* Letter card */}
+      {story ? (
+        <div
+          onClick={() => setIsViewingEmail(true)}
+          className="relative p-6 rounded-lg border bg-card border-border cursor-pointer hover:border-primary/40 hover:shadow-sm transition-all"
+        >
+          {/* Image preview if available */}
+          {story.imageUrl && (
+            <div className="rounded-lg overflow-hidden mb-4">
+              <img 
+                src={story.imageUrl} 
+                alt="Valentine's illustration"
+                className="w-full h-40 object-cover"
+              />
             </div>
-          ))
-        ) : (
-          // Placeholder cards when emails haven't loaded
-          DAY_THEMES.map((theme, index) => (
-            <div
-              key={index}
-              className={`relative p-4 rounded-lg border ${
-                index === 0 
-                  ? 'bg-card border-border' 
-                  : 'bg-muted/50 border-border'
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-rose-subtle flex items-center justify-center">
-                  <span className="text-sm font-medium text-primary">{index + 1}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-foreground">
-                    Day {index + 1}. {theme}
-                  </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    {index === 0 ? (
-                      <span className="text-sm text-muted-foreground">Preview available</span>
-                    ) : (
-                      <>
-                        <Lock className="w-3 h-3 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">Locked</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-                <div className="flex-shrink-0">
-                  {index === 0 ? (
-                    <Eye className="w-4 h-4 text-muted-foreground" />
-                  ) : (
-                    <Lock className="w-4 h-4 text-muted-foreground" />
-                  )}
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* Unlock CTA or Schedule button */}
-      {!isUnlocked ? (
-        <div className="text-center space-y-3">
-          <Button 
-            onClick={handleUnlock}
-            size="lg"
-            className="w-full h-12 text-base"
-            disabled={isProcessing}
-          >
-            {isProcessing ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              <>
-                <Lock className="w-4 h-4 mr-2" />
-                Unlock & schedule
-              </>
-            )}
-          </Button>
-          <p className="text-sm text-muted-foreground">
-            ₹149 one-time • All 7 emails • Full editing access
-          </p>
+          )}
           
-          {/* Temporary test button */}
-          <div className="pt-4 border-t border-dashed border-border mt-4">
-            <Button 
-              variant="outline"
-              onClick={handleTestPayment}
-              className="w-full text-muted-foreground border-dashed"
-            >
-              🧪 Payment Complete (Test Only)
-            </Button>
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-rose-subtle flex items-center justify-center">
+              <Heart className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-foreground mb-1">
+                {story.subject}
+              </p>
+              <p className="text-sm text-muted-foreground line-clamp-3">
+                {story.body.substring(0, 200)}...
+              </p>
+            </div>
+            <div className="flex-shrink-0">
+              <Eye className="w-4 h-4 text-muted-foreground" />
+            </div>
           </div>
+          
+          <p className="text-xs text-muted-foreground text-center mt-4">
+            Click to read the full letter
+          </p>
         </div>
       ) : (
-        <div className="text-center">
+        // Placeholder when story hasn't loaded
+        <div className="relative p-6 rounded-lg border bg-muted/50 border-border">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-rose-subtle flex items-center justify-center">
+              <Heart className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="font-medium text-foreground">Valentine's Day Letter</p>
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Unlock / Payment Section */}
+      <div className="mt-8 space-y-4">
+        {!isUnlocked ? (
+          <>
+            <Button 
+              onClick={handleUnlock}
+              size="lg"
+              className="w-full h-12 text-base"
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Lock className="w-4 h-4 mr-2" />
+                  Unlock & Send for ₹149
+                </>
+              )}
+            </Button>
+
+            {/* Test button - remove in production */}
+            <Button 
+              variant="ghost" 
+              onClick={handleTestPayment}
+              className="w-full text-muted-foreground text-sm"
+            >
+              [Test] Skip payment
+            </Button>
+          </>
+        ) : (
           <Button 
             onClick={() => setShowScheduling(true)}
             size="lg"
             className="w-full h-12 text-base"
           >
-            <Calendar className="w-4 h-4 mr-2" />
-            Schedule emails
+            <Send className="w-4 h-4 mr-2" />
+            Continue to send
           </Button>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Restart button */}
       <div className="mt-6 text-center">
         <Button 
           variant="ghost" 
           onClick={handleRestart}
-          className="text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground text-sm"
         >
           <RotateCcw className="w-4 h-4 mr-2" />
           Start over
         </Button>
       </div>
 
-      {/* Email View/Edit Modal */}
+      {/* Email View Modal */}
       <EmailViewModal
-        isOpen={selectedEmailIndex !== null}
-        onClose={() => setSelectedEmailIndex(null)}
-        email={selectedEmailIndex !== null ? emails[selectedEmailIndex] : null}
-        dayIndex={selectedEmailIndex ?? 0}
-        dayTheme={DAY_THEMES[selectedEmailIndex ?? 0]}
-        isEditable={selectedEmailIndex !== null && isEmailEditable(selectedEmailIndex)}
+        isOpen={isViewingEmail}
+        onClose={() => setIsViewingEmail(false)}
+        email={story}
+        isEditable={isUnlocked}
         onSave={handleSaveEmail}
       />
     </div>

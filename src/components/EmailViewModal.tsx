@@ -10,8 +10,6 @@ interface EmailViewModalProps {
   isOpen: boolean;
   onClose: () => void;
   email: GeneratedEmail | null;
-  dayIndex: number;
-  dayTheme: string;
   isEditable: boolean;
   onSave?: (email: GeneratedEmail) => void;
 }
@@ -20,8 +18,6 @@ const EmailViewModal = ({
   isOpen,
   onClose,
   email,
-  dayIndex,
-  dayTheme,
   isEditable,
   onSave,
 }: EmailViewModalProps) => {
@@ -49,7 +45,7 @@ const EmailViewModal = ({
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">
-            Day {dayIndex + 1}. {dayTheme}
+            Your Valentine's Letter
           </DialogTitle>
         </DialogHeader>
 
@@ -59,7 +55,7 @@ const EmailViewModal = ({
             <div className="rounded-lg overflow-hidden">
               <img 
                 src={email.imageUrl} 
-                alt={`Day ${dayIndex + 1} illustration`}
+                alt="Valentine's illustration"
                 className="w-full h-48 object-cover"
               />
             </div>
@@ -78,18 +74,14 @@ const EmailViewModal = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="body">Message</Label>
+                <Label htmlFor="body">Your Letter</Label>
                 <Textarea
                   id="body"
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
-                  className="min-h-[200px] leading-relaxed"
+                  className="min-h-[300px] leading-relaxed"
                 />
               </div>
-
-              <p className="text-sm text-muted-foreground">
-                All emails are sent at 9:00 PM daily
-              </p>
 
               <div className="flex gap-3 pt-4">
                 <Button variant="outline" onClick={onClose} className="flex-1">
@@ -108,8 +100,8 @@ const EmailViewModal = ({
               </div>
 
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Message</p>
-                <div className="p-4 bg-muted/30 rounded-lg">
+                <p className="text-sm text-muted-foreground">Your Letter</p>
+                <div className="p-4 bg-muted/30 rounded-lg max-h-[400px] overflow-y-auto">
                   <p className="text-foreground whitespace-pre-wrap leading-relaxed">
                     {email.body}
                   </p>
@@ -117,7 +109,7 @@ const EmailViewModal = ({
               </div>
 
               <p className="text-xs text-muted-foreground text-center pt-2">
-                Unlock to edit this email and schedule delivery
+                Unlock to edit this letter and send it
               </p>
             </>
           )}
