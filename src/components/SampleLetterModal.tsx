@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button';
 import { Mail, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import sampleLetterImage from '@/assets/sample-letter-image.jpg';
 
 interface SampleLetterModalProps {
   trigger?: React.ReactNode;
@@ -73,7 +74,7 @@ const SampleLetterModal = ({ trigger }: SampleLetterModalProps) => {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-hidden p-0">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden p-0">
         <div className="relative">
           {/* Envelope Animation */}
           {!isEnvelopeOpen ? (
@@ -123,15 +124,23 @@ const SampleLetterModal = ({ trigger }: SampleLetterModalProps) => {
               
               {/* Letter content */}
               <div className="px-6 py-4 max-h-[60vh] overflow-y-auto">
-                <div className="bg-warm/50 rounded-lg p-6 border border-border/50">
-                  <p className="text-sm text-muted-foreground mb-2">Subject:</p>
-                  <h3 className="font-display text-lg text-foreground mb-4">
-                    {sampleLetter.subject}
-                  </h3>
-                  <div className="prose prose-sm">
-                    <p className="whitespace-pre-line text-foreground/90 leading-relaxed">
-                      {sampleLetter.content}
-                    </p>
+                <div className="bg-warm/50 rounded-lg border border-border/50 overflow-hidden">
+                  {/* Letter image */}
+                  <img 
+                    src={sampleLetterImage} 
+                    alt="Romantic illustration of love letters" 
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="p-6">
+                    <p className="text-sm text-muted-foreground mb-2">Subject:</p>
+                    <h3 className="font-display text-lg text-foreground mb-4">
+                      {sampleLetter.subject}
+                    </h3>
+                    <div className="prose prose-sm">
+                      <p className="whitespace-pre-line text-foreground/90 leading-relaxed">
+                        {sampleLetter.content}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
