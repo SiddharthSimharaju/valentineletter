@@ -58,7 +58,7 @@ type GeneratedEmail = {
   imageUrl?: string;
 };
 
-const imagePrompt = "Soft cinematic illustration of two hands gently intertwined on a blanket, soft golden hour light filtering through curtains, muted warm romantic tones, quiet affection and intimacy, no text, atmospheric and emotional";
+const imagePrompt = "A soft, intimate, cinematic illustration representing quiet affection. Muted warm color palette with dusty rose, cream, and soft gold tones. Scattered handwritten love letters and envelopes in warm light, gentle bokeh, watercolor texture, romantic and atmospheric. No text, no people, no faces. Evokes the feeling of a private love letter. Ultra high resolution.";
 
 function safeString(v: unknown, fallback = ""): string {
   if (typeof v !== "string") return fallback;
@@ -99,7 +99,7 @@ function buildFallbackStory(formData: FormData): GeneratedEmail[] {
   return [{
     day: 1,
     theme: "Valentine's Day",
-    subject: "A letter for you",
+    subject: "Happy Valentine's Day",
     body,
   }];
 }
@@ -224,7 +224,7 @@ OUTPUT FORMAT - Return a JSON array with exactly 1 object:
   {
     "day": 1,
     "theme": "Valentine's Day",
-    "subject": "Short, intimate subject line (not generic)",
+    "subject": "Happy Valentine's Day",
     "body": "Complete letter here. Use \\n\\n for paragraph breaks. 1000-1500 words. ABSOLUTELY NO em dashes (—) or double hyphens (--)."
   }
 ]

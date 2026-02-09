@@ -9,7 +9,7 @@ interface SampleLetterModalProps {
 }
 
 const sampleLetter = {
-  subject: "A letter I've been meaning to write",
+  subject: "Happy Valentine's Day",
   content: `There's this thing that happens sometimes.
 
 I'll be in the middle of something ordinary, folding laundry or waiting for the kettle, and you'll cross my mind. Not a memory exactly. More like a feeling that settles in without asking. It doesn't announce itself. It just arrives.
