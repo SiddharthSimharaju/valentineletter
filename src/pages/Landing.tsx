@@ -1,6 +1,6 @@
 import { Heart, Mail, Shield, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import lettersBg from '@/assets/letters-bg-optimized.jpg';
 import SampleLetterModal from '@/components/SampleLetterModal';
 
@@ -211,6 +211,14 @@ const Landing = () => {
           <div className="flex items-center gap-2">
             <Heart className="w-4 h-4 text-primary" />
             <span className="text-sm text-muted-foreground">Valentine Letter</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <Link to="/privacy" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+              Privacy Policy
+            </Link>
+            <Link to="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+              Terms & Conditions
+            </Link>
           </div>
           <p className="text-xs text-muted-foreground">
             Made with love for lovers everywhere.
