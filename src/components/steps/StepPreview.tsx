@@ -427,8 +427,8 @@ const StepPreview = () => {
               <p className="font-medium text-foreground mb-1">
                 {story.subject}
               </p>
-              <p className="text-sm text-muted-foreground line-clamp-4">
-                {story.body.substring(0, 200)}...
+              <p className="text-sm text-muted-foreground line-clamp-8">
+                {story.body.substring(0, 500)}...
               </p>
             </div>
             <div className="flex-shrink-0">
