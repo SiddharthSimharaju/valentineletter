@@ -55,8 +55,28 @@ export function useGmailAuth() {
     }
   }, []);
 
-  // On mount, set a hard timeout so isLoading never stays true forever
+  // On mount, check URL params from gmail-callback redirect, then check connection
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const gmailConnected = params.get('gmail_connected');
+    const gmailError = params.get('gmail_error');
+
+    if (gmailConnected) {
+      setConnection({ isConnected: true, email: gmailConnected, isLoading: false });
+      // Clean up URL params
+      const url = new URL(window.location.href);
+      url.searchParams.delete('gmail_connected');
+      window.history.replaceState({}, '', url.toString());
+      return;
+    }
+
+    if (gmailError) {
+      console.error('Gmail OAuth error:', gmailError);
+      const url = new URL(window.location.href);
+      url.searchParams.delete('gmail_error');
+      window.history.replaceState({}, '', url.toString());
+    }
+
     checkConnection();
     const safetyTimeout = setTimeout(() => {
       setConnection(prev => prev.isLoading ? { ...prev, isLoading: false } : prev);
@@ -116,22 +136,20 @@ export function useGmailAuth() {
     return () => subscription.unsubscribe();
   }, [checkConnection]);
 
-  // Start OAuth flow using Supabase Auth (same pattern as action-flow-planner)
+  // Start OAuth flow using custom edge function to get gmail.send scope
   const connectGmail = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}${window.location.pathname}`,
-          scopes: 'https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/userinfo.email',
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-        },
+      const returnUrl = `${window.location.origin}${window.location.pathname}`;
+      const { data, error } = await supabase.functions.invoke('gmail-auth-url', {
+        body: { returnUrl },
       });
 
       if (error) throw error;
+      if (data?.authUrl) {
+        window.location.href = data.authUrl;
+      } else {
+        throw new Error('No auth URL returned');
+      }
     } catch (err) {
       console.error('Failed to start Gmail auth:', err);
       throw err;
