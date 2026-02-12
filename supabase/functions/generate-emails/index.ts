@@ -119,12 +119,16 @@ function validateStory(emails: unknown): GeneratedEmail[] {
   if (
     !email ||
     typeof email !== "object" ||
-    typeof (email as any).day !== "number" ||
     typeof (email as any).theme !== "string" ||
     typeof (email as any).subject !== "string" ||
     typeof (email as any).body !== "string"
   ) {
     throw new Error("Invalid story structure");
+  }
+
+  // Normalize day to number if it came as string
+  if (typeof (email as any).day !== "number") {
+    (email as any).day = 1;
   }
 
   return emails as GeneratedEmail[];
@@ -133,111 +137,130 @@ function validateStory(emails: unknown): GeneratedEmail[] {
 async function generateStoryWithAi(formData: FormData, apiKey: string): Promise<GeneratedEmail[]> {
   const recipientName = safeString(formData.recipientName, "my partner");
   
-  const systemPrompt = `You are writing ONE Valentine's Day love letter. Write it as if it's a private letter, not a greeting card. It should feel like an inner thought finally put into words.
+  const toneInstruction = (() => {
+    switch (formData.tone) {
+      case "simple": return "Super straightforward. Short sentences. Say what you mean, nothing extra.";
+      case "warm": return "Affectionate but not cheesy. Like how you'd actually talk to someone you love.";
+      case "playful": return "Light, fun, maybe teasing. Keep it genuine though.";
+      case "deep": return "Reflective, like thinking out loud. Not poetry. Just honest inner monologue.";
+      default: return "Warm and natural.";
+    }
+  })();
 
-CORE PHILOSOPHY:
-- Write as if the reader is the only person in the world reading this
-- This letter is an inner thought finally put into words
-- The tone should feel intimate, reflective, and emotionally honest
-- Write with depth. Write with patience.
+  const systemPrompt = `You are writing one single private love letter.
 
-WRITING STYLE:
-- Use specific emotional observations, not generic phrases
-- Reference time, pauses, everyday moments
-- Allow silence and restraint in your writing
-- Let sentences breathe
-- Prefer medium-sized paragraphs (3-5 sentences)
-- Use contractions naturally (don't, can't, I'm, you're)
-- Incomplete sentences are okay. Like this.
+This letter must feel like it could only be written to this one person and no one else on earth.
 
-ABSOLUTELY FORBIDDEN - NEVER USE THESE:
-- Em dashes (—) or double hyphens (--). NEVER. Use commas, periods, or separate sentences instead.
-- Generic phrases: "you mean a lot to me", "special feeling", "thinking of us", "special bond", "means so much"
-- AI-sounding phrases: "I find myself", "in this moment", "journey", "truly", "deeply", "grateful for", "cherish"
-- Hallmark card phrases or clichés of any kind
-- Metaphors unless they feel grounded and specific
-- Dramatic sign-offs
-- Any flowery or greeting-card language
+Before writing, read every user response carefully. Extract:
+• Specific names
+• Dates
+• Locations
+• Inside jokes
+• Shared rituals
+• Small habits
+• Fights mentioned
+• Turning points
+• Phrases the sender used verbatim
+• Anything unusual or oddly specific
 
-THE LETTER MUST INCLUDE:
-- At least one inner realization (a quiet discovery about self or the relationship)
-- At least one emotional contrast (quiet vs loud, then vs now, said vs unsaid, visible vs hidden)
-- A genuine, grounded expression of love
+You are required to use these details explicitly and naturally inside the letter. Do not generalize them. Do not summarize them. Do not replace them with broader statements.
 
-STRUCTURE:
-- Opening: A quiet, reflective beginning that draws the reader in
-- Body: Weave together the personal context provided, moving through time (past to present)
-- Closing: A forward-looking hope or simple declaration, landing softly
+If the user mentions a café name, use the café name.
+If they mention a yellow sweater, write yellow sweater.
+If they mention 2:17 am, write 2:17 am.
 
-LENGTH: 1000-1500 words. Long enough to feel substantial and complete. Count your words carefully.
+The letter must not feel reusable.
 
-CRITICAL TEST: If this letter could be sent to anyone without changing a sentence, it fails. Rewrite it with specifics from the provided context.
+WRITING STYLE
 
-TONE: ${safeString(formData.tone, "warm")}
-${formData.tone === "simple" ? "Super straightforward. Say what you mean, nothing extra." : ""}
-${formData.tone === "warm" ? "Affectionate but not cheesy. Like how you'd actually talk to someone you love." : ""}
-${formData.tone === "playful" ? "Light, fun, maybe teasing. Keep it genuine though." : ""}
-${formData.tone === "deep" ? "Reflective, but sounds like thinking out loud, not writing poetry." : ""}
+Write as a private, intimate letter. It should feel like an inner thought finally put into words.
+
+Be informal. Human. Slightly messy in places. Use contractions naturally. Allow sentence fragments.
+
+No em dashes (—). No double hyphens (--). Use commas, periods, or separate sentences instead.
+
+Strictly forbidden phrases:
+"special bond", "grateful for", "means so much", "I find myself", "journey", "truly", "deeply", "cherish", "in this moment"
+
+Avoid clichés entirely. If a sentence could belong to anyone, rewrite it.
+
+STRUCTURE
+
+Do not label sections. Do not visibly separate themes.
+
+Instead, weave everything into one continuous emotional arc that flows naturally:
+
+Start with the sender's quiet realization from the "lately thinking" input.
+Move into the origin story and early impression using concrete sensory detail.
+Include admiration that the sender rarely says out loud.
+Include one honest emotional confession that feels vulnerable.
+Show how the relationship has changed over time using real examples.
+Include small everyday reasons the sender chooses this person.
+Express what the sender hopes for them right now in their life.
+End simply. Grounded. Personal.
+
+This must feel like one unfolding thought, not eight paragraphs stitched together.
+
+DEPTH REQUIREMENTS
+
+• Include at least one inner realization moment.
+• Include at least one emotional contrast (e.g., what I thought then vs what I know now).
+• Reference at least 6 distinct details pulled directly from user responses.
+• Make the reader see specific scenes.
+• Show more than you tell.
+
+If the letter could be sent to someone else without changing names, it has failed.
+
+TONE: ${toneInstruction}
+
+LENGTH: 1500 to 2000 words. Do not pad with filler. If detail is thin, expand moments. Slow down scenes. Add sensory detail. Stay specific.
 
 ${formData.guardrails ? `NEVER MENTION: ${safeString(formData.guardrails)}` : ""}`;
 
-  const userPrompt = `Create ONE complete Valentine's Day love letter for ${recipientName}.
+  const userPrompt = `Write one love letter for ${recipientName}. Use every specific detail below. Do not generalize or summarize any of it.
 
-PERSONAL CONTEXT TO WEAVE INTO THE LETTER:
+SENDER'S RESPONSES:
 
 What's been on their mind lately:
-"${safeString(formData.latelyThinking, "Not provided - create a gentle opening about noticing small things")}"
+"${safeString(formData.latelyThinking, "Not provided")}"
 
-How they met (origin story):
-"${safeString(formData.originStory, "Not provided - be vague about the meeting")}"
+How they met:
+"${safeString(formData.originStory, "Not provided")}"
 
 What was noticed early on:
-"${safeString(formData.earlyImpression, "Not provided - focus on general early impressions")}"
+"${safeString(formData.earlyImpression, "Not provided")}"
 
 What they admire but rarely say:
-"${safeString(formData.admiration, "Not provided - focus on quiet observation")}"
+"${safeString(formData.admiration, "Not provided")}"
 
 How being with them has changed the sender:
-"${safeString(formData.vulnerabilityFeeling, "Not provided - focus on inner emotional change")}"
+"${safeString(formData.vulnerabilityFeeling, "Not provided")}"
 
 How the relationship has changed over time:
-"${safeString(formData.growthChange, "Not provided - focus on steadiness and evolution")}"
+"${safeString(formData.growthChange, "Not provided")}"
 
 What makes them choose this person on ordinary days:
-"${safeString(formData.everydayChoice, "Not provided - focus on everyday presence")}"
+"${safeString(formData.everydayChoice, "Not provided")}"
 
-What the sender hopes they feel today:
-"${safeString(formData.valentineHope, "Not provided - keep it simple and grounded")}"
-
-EMOTIONAL ARC OF THE LETTER:
-1. Opening: Start with a quiet realization or acknowledgment (use "lately thinking" context)
-2. Memory: Ground in a specific memory, the beginning (use origin story and early impression)
-3. Appreciation: Something genuinely admired (use admiration context)
-4. Vulnerability: Honest emotional disclosure (use vulnerability context)
-5. Growth: How things have evolved (use growth context)
-6. Choice: The everyday reasons (use everyday choice context)
-7. Hope: What you wish for them today (use valentine hope context)
-8. Closing: A simple, grounded expression of love
+What the sender hopes for them right now:
+"${safeString(formData.valentineHope, "Not provided")}"
 
 OUTPUT FORMAT - Return a JSON array with exactly 1 object:
 [
   {
-    "day": 1,
-    "theme": "Valentine's Day",
-    "subject": "Happy Valentine's Day",
-    "body": "Complete letter here. Use \\n\\n for paragraph breaks. 1000-1500 words. ABSOLUTELY NO em dashes (—) or double hyphens (--)."
+    "day": "<valentine_day_or_context>",
+    "theme": "<core emotional theme derived from responses>",
+    "subject": "<short, personal subject line that references a specific detail from above>",
+    "body": "Full letter here. Use \\n\\n for paragraph breaks. 1500-2000 words. NO em dashes (—) or double hyphens (--)."
   }
 ]
 
-FINAL CHECKLIST BEFORE RESPONDING:
-1. Did you count words? The letter MUST be 1000-1500 words.
-2. Did you remove ALL em dashes (—) and double hyphens (--)? Replace with commas or periods.
-3. Does the letter have inner realizations, emotional contrasts, and a forward-looking hope?
-4. Did you avoid ALL generic phrases like "means so much", "special bond", "grateful for"?
-5. Does this letter feel like it could ONLY be written for this specific person?
-6. Did you weave together ALL the personal context provided into a cohesive narrative?
-
-If any check fails, rewrite before responding.`;
+BEFORE RESPONDING, VERIFY:
+1. Is the letter 1500-2000 words?
+2. Are there zero em dashes or double hyphens?
+3. Did you use at least 6 specific details (names, places, dates, habits, phrases) directly from the sender's responses?
+4. Does the subject line reference a specific detail, not a generic phrase?
+5. Could this letter only be for ${recipientName}? If not, rewrite.`;
 
   console.log("Calling AI gateway for Valentine's story...");
 
