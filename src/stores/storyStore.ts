@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { StoryFormData, GeneratedEmail, EmotionalIntent, RelationshipType, ExpressionComfort, Tone } from '@/types/story';
+import type { StoryFormData, GeneratedEmail } from '@/types/story';
 
 interface StoryState {
   // Current step in the flow
@@ -15,8 +15,6 @@ interface StoryState {
   // Story state
   storyId: string | null;
   isGenerating: boolean;
-  isUnlocked: boolean;
-  isPaid: boolean;
   
   // Actions
   setStep: (step: number) => void;
@@ -26,8 +24,6 @@ interface StoryState {
   setEmails: (emails: GeneratedEmail[]) => void;
   setStoryId: (id: string) => void;
   setIsGenerating: (generating: boolean) => void;
-  setIsUnlocked: (unlocked: boolean) => void;
-  setIsPaid: (paid: boolean) => void;
   reset: () => void;
 }
 
@@ -37,8 +33,6 @@ const initialState = {
   emails: [],
   storyId: null,
   isGenerating: false,
-  isUnlocked: false,
-  isPaid: false,
 };
 
 export const useStoryStore = create<StoryState>()(
@@ -57,8 +51,7 @@ export const useStoryStore = create<StoryState>()(
       setEmails: (emails) => set({ emails }),
       setStoryId: (id) => set({ storyId: id }),
       setIsGenerating: (generating) => set({ isGenerating: generating }),
-      setIsUnlocked: (unlocked) => set({ isUnlocked: unlocked }),
-      setIsPaid: (paid) => set({ isPaid: paid }),
+      
       
       reset: () => set(initialState),
     }),
@@ -69,8 +62,6 @@ export const useStoryStore = create<StoryState>()(
         formData: state.formData,
         emails: state.emails,
         storyId: state.storyId,
-        isUnlocked: state.isUnlocked,
-        isPaid: state.isPaid,
         // Exclude: isGenerating
       }),
     }

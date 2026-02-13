@@ -93,7 +93,7 @@ const EmailViewModal = ({
               </div>
             </>
           ) : (
-            <>
+          <>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Subject</p>
                 <p className="font-medium text-foreground">{email.subject}</p>
@@ -101,17 +101,12 @@ const EmailViewModal = ({
 
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Your Letter</p>
-                <div className="relative p-4 bg-muted/30 rounded-lg max-h-[400px] overflow-y-auto">
+                <div className="p-4 bg-muted/30 rounded-lg max-h-[400px] overflow-y-auto">
                   <p className="text-foreground whitespace-pre-wrap leading-relaxed">
-                    {email.body.substring(0, 200)}...
+                    {email.body}
                   </p>
-                  <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-muted/80 to-transparent rounded-b-lg" />
                 </div>
               </div>
-
-              <p className="text-xs text-muted-foreground text-center pt-2">
-                Unlock to read the full letter, edit it, and send it
-              </p>
             </>
           )}
         </div>
