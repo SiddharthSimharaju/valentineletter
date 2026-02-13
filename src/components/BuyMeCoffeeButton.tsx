@@ -6,11 +6,11 @@ const BuyMeCoffeeButton = () => {
       rel="noopener noreferrer"
       className="fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-2 rounded-full shadow-lg transition-transform hover:scale-105"
       style={{
-        backgroundColor: '#FF5F5F',
-        color: '#ffffff',
-        fontFamily: "'Bree Serif', serif",
-        fontSize: '14px',
-        fontWeight: 600,
+        backgroundColor: '#FFDD00',
+        color: '#000000',
+        fontFamily: "'Cookie', cursive",
+        fontSize: '16px',
+        fontWeight: 400,
         textDecoration: 'none',
         border: '1px solid #000000',
       }}
