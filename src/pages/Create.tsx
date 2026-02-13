@@ -40,7 +40,7 @@ const Create = () => {
   
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
-      <BuyMeCoffeeButton />
+      {!showProgress && <BuyMeCoffeeButton />}
       <div className="w-full max-w-md">
         {showProgress && (
           <div className="mb-8">
