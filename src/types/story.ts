@@ -49,8 +49,6 @@ export interface Story {
   recipientEmail: string;
   formData: StoryFormData;
   emails: GeneratedEmail[];
-  isUnlocked: boolean;
-  isPaid: boolean;
   scheduledStartDate?: string;
   createdAt: string;
 }

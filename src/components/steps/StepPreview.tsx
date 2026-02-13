@@ -1,4 +1,4 @@
-import { Lock, Eye, Pencil, RotateCcw, Loader2, Calendar, Send, CheckCircle2, Mail, Heart } from 'lucide-react';
+import { Eye, Pencil, RotateCcw, Loader2, Calendar, Send, CheckCircle2, Heart, Copy } from 'lucide-react';
 import { useState } from 'react';
 import { useStoryStore } from '@/stores/storyStore';
 import { Button } from '@/components/ui/button';
@@ -9,45 +9,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { GeneratedEmail } from '@/types/story';
 import { useGmailAuth } from '@/hooks/useGmailAuth';
-
-declare global {
-  interface Window {
-    Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
-  }
-}
-
-interface RazorpayOptions {
-  key: string;
-  amount: number;
-  currency: string;
-  name: string;
-  description: string;
-  order_id: string;
-  handler: (response: RazorpayResponse) => void;
-  prefill?: {
-    name?: string;
-    email?: string;
-  };
-  theme?: {
-    color?: string;
-  };
-  modal?: {
-    ondismiss?: () => void;
-  };
-}
-
-interface RazorpayInstance {
-  open: () => void;
-}
-
-interface RazorpayResponse {
-  razorpay_order_id: string;
-  razorpay_payment_id: string;
-  razorpay_signature: string;
-}
+import BuyMeCoffeeButton from '@/components/BuyMeCoffeeButton';
 
 // Valentine's Day
-const VALENTINES_DATE = new Date(2026, 1, 14); // Feb 14, 2026
+const VALENTINES_DATE = new Date(2026, 1, 14);
 
 const formatDate = (date: Date) => {
   return date.toLocaleDateString('en-US', { 
@@ -58,95 +23,15 @@ const formatDate = (date: Date) => {
 };
 
 const StepPreview = () => {
-  const { emails, isUnlocked, formData, setEmails, setIsUnlocked, setIsPaid, reset } = useStoryStore();
+  const { emails, formData, setEmails, reset } = useStoryStore();
   const [isViewingEmail, setIsViewingEmail] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState(formData.recipientEmail || '');
-  const [isProcessing, setIsProcessing] = useState(false);
   const [isScheduled, setIsScheduled] = useState(false);
   const [showScheduling, setShowScheduling] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   const gmail = useGmailAuth();
-  const story = emails[0]; // Single story
-
-  const handleUnlock = async () => {
-    if (isProcessing) return;
-    setIsProcessing(true);
-
-    try {
-      // Create order
-      const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
-        body: { amount: 99, currency: 'INR' }
-      });
-
-      if (error || !data?.orderId) {
-        throw new Error(error?.message || 'Failed to create order');
-      }
-
-      const { orderId, keyId, amount, currency } = data;
-
-      // Open Razorpay checkout
-      const options: RazorpayOptions = {
-        key: keyId,
-        amount: amount,
-        currency: currency,
-        name: 'What I Want to Tell You',
-        description: 'Valentine\'s Day Love Letter',
-        order_id: orderId,
-        handler: async (response: RazorpayResponse) => {
-          try {
-            // Verify payment
-            const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-razorpay-payment', {
-              body: {
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-              }
-            });
-
-            if (verifyError || !verifyData?.success) {
-              throw new Error('Payment verification failed');
-            }
-
-            // Unlock letter
-            setIsUnlocked(true);
-            setIsPaid(true);
-            setShowScheduling(true);
-            toast.success('Payment successful! Your letter is unlocked.');
-          } catch (err) {
-            console.error('Payment verification error:', err);
-            toast.error('Payment verification failed. Please contact support.');
-          }
-        },
-        prefill: {
-          name: formData.recipientName || '',
-        },
-        theme: {
-          color: '#c9828a',
-        },
-        modal: {
-          ondismiss: () => {
-            setIsProcessing(false);
-          }
-        }
-      };
-
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
-    } catch (err) {
-      console.error('Payment error:', err);
-      toast.error('Failed to initiate payment. Please try again.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleTestPayment = () => {
-    setIsUnlocked(true);
-    setIsPaid(true);
-    setShowScheduling(true);
-    toast.success('Test: Payment simulated! Letter unlocked.');
-  };
+  const story = emails[0];
 
   const handleRestart = () => {
     reset();
@@ -156,6 +41,13 @@ const StepPreview = () => {
 
   const handleSaveEmail = (updatedEmail: GeneratedEmail) => {
     setEmails([updatedEmail]);
+  };
+
+  const handleCopyLetter = () => {
+    if (!story) return;
+    const text = `${story.subject}\n\n${story.body}`;
+    navigator.clipboard.writeText(text);
+    toast.success('Letter copied to clipboard!');
   };
 
   const handleSendEmail = async () => {
@@ -177,7 +69,6 @@ const StepPreview = () => {
     setIsSendingEmail(true);
     
     try {
-      // Build email body with image if available
       let emailBody = '';
       if (story.imageUrl) {
         emailBody += `<img src="${story.imageUrl}" alt="Valentine's illustration" style="max-width: 100%; height: auto; border-radius: 8px; margin-bottom: 24px;" /><br><br>`;
@@ -205,16 +96,17 @@ const StepPreview = () => {
     }
   };
 
-  // Show scheduling UI after payment
-  if (isUnlocked && showScheduling && !isScheduled) {
+  // Show scheduling UI
+  if (showScheduling && !isScheduled) {
     return (
       <div className="animate-fade-up">
+        <BuyMeCoffeeButton />
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-            <CheckCircle2 className="w-8 h-8 text-green-600" />
+            <Send className="w-8 h-8 text-green-600" />
           </div>
           <h2 className="font-display text-2xl md:text-3xl font-medium text-foreground mb-2">
-            Your letter is ready!
+            Send your letter
           </h2>
           <p className="text-muted-foreground">
             Send it to {formData.recipientName} on Valentine's Day
@@ -391,8 +283,10 @@ const StepPreview = () => {
     );
   }
 
+  // Main preview - letter is fully accessible
   return (
     <div className="animate-fade-up">
+      <BuyMeCoffeeButton />
       <div className="text-center mb-8">
         <h2 className="font-display text-2xl md:text-3xl font-medium text-foreground mb-2">
           Your Valentine's Letter
@@ -408,7 +302,6 @@ const StepPreview = () => {
           onClick={() => setIsViewingEmail(true)}
           className="relative p-6 rounded-lg border bg-card border-border cursor-pointer hover:border-primary/40 hover:shadow-sm transition-all"
         >
-          {/* Image preview if available */}
           {story.imageUrl && (
             <div className="rounded-lg overflow-hidden mb-4">
               <img 
@@ -441,7 +334,6 @@ const StepPreview = () => {
           </p>
         </div>
       ) : (
-        // Placeholder when story hasn't loaded
         <div className="relative p-6 rounded-lg border bg-muted/50 border-border">
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0 w-10 h-10 rounded-full bg-rose-subtle flex items-center justify-center">
@@ -455,48 +347,26 @@ const StepPreview = () => {
         </div>
       )}
 
-      {/* Unlock / Payment Section */}
-      <div className="mt-8 space-y-4">
-        {!isUnlocked ? (
-          <>
-            <Button 
-              onClick={handleUnlock}
-              size="lg"
-              className="w-full h-12 text-base"
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Lock className="w-4 h-4 mr-2" />
-                  Unlock & Send for ₹99
-                </>
-              )}
-            </Button>
+      {/* Action buttons */}
+      <div className="mt-8 space-y-3">
+        <Button 
+          onClick={() => setShowScheduling(true)}
+          size="lg"
+          className="w-full h-12 text-base"
+        >
+          <Send className="w-4 h-4 mr-2" />
+          Send via Email
+        </Button>
 
-            {/* Test button - remove in production */}
-            <Button 
-              variant="ghost" 
-              onClick={handleTestPayment}
-              className="w-full text-muted-foreground text-sm"
-            >
-              [Test] Skip payment
-            </Button>
-          </>
-        ) : (
-          <Button 
-            onClick={() => setShowScheduling(true)}
-            size="lg"
-            className="w-full h-12 text-base"
-          >
-            <Send className="w-4 h-4 mr-2" />
-            Continue to send
-          </Button>
-        )}
+        <Button 
+          variant="outline"
+          onClick={handleCopyLetter}
+          size="lg"
+          className="w-full h-12 text-base"
+        >
+          <Copy className="w-4 h-4 mr-2" />
+          Copy letter to clipboard
+        </Button>
       </div>
 
       <div className="mt-6 text-center">
@@ -510,12 +380,12 @@ const StepPreview = () => {
         </Button>
       </div>
 
-      {/* Email View Modal */}
+      {/* Email View Modal - always editable now */}
       <EmailViewModal
         isOpen={isViewingEmail}
         onClose={() => setIsViewingEmail(false)}
         email={story}
-        isEditable={isUnlocked}
+        isEditable={true}
         onSave={handleSaveEmail}
       />
     </div>
