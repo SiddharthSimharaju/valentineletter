@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { GeneratedEmail } from '@/types/story';
 import { useGmailAuth } from '@/hooks/useGmailAuth';
-import BuyMeCoffeeButton from '@/components/BuyMeCoffeeButton';
+
 
 // Valentine's Day
 const VALENTINES_DATE = new Date(2026, 1, 14);
@@ -100,7 +100,6 @@ const StepPreview = () => {
   if (showScheduling && !isScheduled) {
     return (
       <div className="animate-fade-up">
-        <BuyMeCoffeeButton />
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
             <Send className="w-8 h-8 text-green-600" />
@@ -286,7 +285,7 @@ const StepPreview = () => {
   // Main preview - letter is fully accessible
   return (
     <div className="animate-fade-up">
-      <BuyMeCoffeeButton />
+      
       <div className="text-center mb-8">
         <h2 className="font-display text-2xl md:text-3xl font-medium text-foreground mb-2">
           Your Valentine's Letter

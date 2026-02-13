@@ -13,6 +13,7 @@ import StepTone from '@/components/steps/StepTone';
 import StepGenerating from '@/components/steps/StepGenerating';
 import StepPreview from '@/components/steps/StepPreview';
 import ProgressBar from '@/components/ProgressBar';
+import BuyMeCoffeeButton from '@/components/BuyMeCoffeeButton';
 
 const STEPS = [
   { component: StepRecipient, showProgress: true },        // 0 - Their name & email
@@ -39,6 +40,7 @@ const Create = () => {
   
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
+      <BuyMeCoffeeButton />
       <div className="w-full max-w-md">
         {showProgress && (
           <div className="mb-8">
